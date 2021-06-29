@@ -53,6 +53,7 @@ public class PublishController {
         }
 
         User user = null;
+        //登陆状态才可以发布文章
         Cookie[] cookies = request.getCookies();
         if(cookies != null && cookies.length != 0){
             for (Cookie cookie : cookies) {
@@ -65,6 +66,7 @@ public class PublishController {
                 }
             }
         }
+        //user==null 未登录,在model中存储错误信息
         if(user == null){
             model.addAttribute("error","用户未登录");
             return "publish";
