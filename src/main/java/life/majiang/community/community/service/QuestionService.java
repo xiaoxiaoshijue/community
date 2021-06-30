@@ -1,6 +1,7 @@
 package life.majiang.community.community.service;
 
 
+import life.majiang.community.community.dto.PaginationDTO;
 import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.mapper.QuestionMapper;
 import life.majiang.community.community.mapper.UserMapper;
@@ -22,17 +23,30 @@ public class QuestionService {
     @Autowired
     private UserMapper userMapper;
 
-    public List<QuestionDTO> list() {
-        List<Question> questionList = questionMapper.list();   //查询question表中的信息 保存在List集合中
+    public PaginationDTO list(Integer page, Integer size) {
+
+        PaginationDTO paginationDTO = new PaginationDTO();
+        Integer totalCount = questionMapper.count();
+        paginationDTO.setPagination(totalCount,page,size);   //入口
+        if(page < 1){
+            page = 1;
+        }
+        if(page > paginationDTO.getTotalPage()){
+            page = paginationDTO.getTotalPage();
+        }
+        Integer offset = size * (page - 1);
+
+        List<Question> questionList = questionMapper.list(offset,size);   //查询question表中的信息 保存在List集合中
         List<QuestionDTO> questionDTOList = new ArrayList<>(); //创建一个QuestionDTO类型集合，用来保存结果
-        //循环遍历 把结果保存在questionDTO对象中
-        for (Question question : questionList) {
+        for (Question question : questionList) {        //循环遍历 把结果保存在questionDTO对象中
             User user = userMapper.findById(question.getCreator()); //通过question中的Creator属性对应user中的id属性 在数据库中查找对应的uesr
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(question,questionDTO);         //把question对象中的属性赋值给questionDTO对象
             questionDTO.setUser(user);
             questionDTOList.add(questionDTO);
         }
-        return questionDTOList;
+        paginationDTO.setQuestions(questionDTOList);
+
+        return paginationDTO;
     }
 }

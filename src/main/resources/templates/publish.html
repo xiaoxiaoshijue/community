@@ -74,10 +74,15 @@
                     <label for="tag">添加标签：</label>
                     <input type="text" class="form-control" th:value="${tag}"  name="tag" id="tag"placeholder="输入标签，以，号隔开">
                 </div>
-
+<!--bootstrap栅栏学习-->
                 <div class="container-fluid main">
                     <div class="row">
-                        <div class="alert alert-danger col-lg-9 col-md-12 col-sm-12 col-xs-12" th:text="${error}" th:if="${error!=null}"></div>
+                        <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12" >
+                            <div class="alert alert-danger col-lg-12 col-md-12 col-sm-12 col-xs-12"
+                                 th:if="${error != null}"
+                                 th:text="${error}">
+                            </div>
+                        </div>
                         <div class=" col-lg-3 col-md-12 col-sm-12 col-xs-12">
                             <button type="submit"
                                     class="btn btn-success btn_publish">发布
