@@ -17,24 +17,12 @@ public class PaginationDTO {
 
     /**
      *
-     * @param totalCount   总记录数
-     * @param page         当前页数
-     * @param size         每页的最大记录数
+     * @param page
+     * @param totalPage
      */
-    public void setPagination(Integer totalCount, Integer page, Integer size) {
-        if(totalCount % size == 0){
-            totalPage = totalCount / size;
-        }else {
-            totalPage = totalCount / size + 1;
-        }
-        if(page < 1){
-            page = 1;
-        }
-        if(page > totalPage){
-            page = totalPage;
-        }
-        Page = page;
-
+    public void setPagination(Integer page,Integer totalPage) {
+        this.totalPage = totalPage;
+        this.Page = page;
         pages.add(page);
         for (int i = 1; i <= 3; i++) {
             if(page - i > 0){

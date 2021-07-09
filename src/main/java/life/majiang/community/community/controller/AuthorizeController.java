@@ -6,6 +6,7 @@ import life.majiang.community.community.dto.GithubUser;
 import life.majiang.community.community.mapper.UserMapper;
 import life.majiang.community.community.model.User;
 import life.majiang.community.community.provider.GithubProvider;
+import life.majiang.community.community.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -23,7 +24,7 @@ public class AuthorizeController {
     private GithubProvider githubProvider;
 
     @Autowired
-    private UserMapper userMapper;
+    private UserService userService;
 
     @Value("${github.client.id}")
     private String clientId;
@@ -59,12 +60,12 @@ public class AuthorizeController {
             user.setGmtCreate(System.currentTimeMillis());
             user.setGmtModified(user.getGmtCreate());
 
-            userMapper.insert(user);
+            userService.createOrUpdate(user);
 
             response.addCookie(new Cookie("token",token));
 
             //登陆成功，写cookie 和 session
-            request.getSession().setAttribute("user",githubUser);
+            //request.getSession().setAttribute("user",user);//此处穿uesr会报错 会导致登陆后user.id=null 怀疑时githubUser.id 类型是long 二user.id未Integer
             return "redirect:/";
 
         }else {
@@ -72,6 +73,15 @@ public class AuthorizeController {
             return "redirect:/";
         }
         //System.out.println(user.getName());
+    }
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request,
+                         HttpServletResponse response){
+        request.getSession().removeAttribute("user");
+        Cookie cookie = new Cookie("token",null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        return "redirect:/";
     }
 
 }
