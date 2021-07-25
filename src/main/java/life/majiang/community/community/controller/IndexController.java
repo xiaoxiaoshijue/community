@@ -17,7 +17,7 @@ public class IndexController {
         @GetMapping("/")
         public String index(Model model,
                             @RequestParam(name = "page",defaultValue = "1")Integer page,
-                            @RequestParam(name = "size",defaultValue = "2")Integer size ) {
+                            @RequestParam(name = "size",defaultValue = "3")Integer size ) {
 
             PaginationDTO pagination = questionService.list(page,size);
             System.out.println(pagination.toString());
