@@ -39,7 +39,9 @@
                     <label for="tag">添加标签：</label>
                     <input type="text" class="form-control" th:value="${tag}" name="tag" id="tag"
                            placeholder="输入标签，以，号隔开"
-                           onclick="showSelectTag()">
+                           onclick="showSelectTag()"
+                           autocomplete="off">
+                    <!--待改进：出发单击事件后 展示所有标签，点击标签种类展示对应标签 再点击 展示所有标签-->
                     <div id="select-tag"  class="publish-tag-tab">
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
@@ -51,7 +53,7 @@
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active" th:id="${selectCategory.categoryName}" th:each="selectCategory:${tags}">
                                     <span class="label label-info" th:each="selectTag:${selectCategory.tags}">
-                                        <span class="glyphicon glyphicon-tags" onclick="selectTag(this)" th:data-tag="${selectTag}" th:text="${selectTag}"></span>
+                                        <span class="glyphicon glyphicon-tags" onclick="selectTag(this)" th:data-tag="${selectTag}" th:text="${' ' + selectTag}"></span>
                                     </span>
                                 </div>
                             </div>
