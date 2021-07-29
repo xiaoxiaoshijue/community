@@ -2,6 +2,8 @@ package life.majiang.community.community.service;
 
 import life.majiang.community.community.dto.CommentDTO;
 import life.majiang.community.community.enums.CommentTypeEnum;
+import life.majiang.community.community.enums.NotificationEnum;
+import life.majiang.community.community.enums.NotificationStatusEnum;
 import life.majiang.community.community.exception.CustomizeErrorCode;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.*;
@@ -35,8 +37,11 @@ public class CommentService {
     @Autowired
     private CommentExtMapper commentExtMapper;
 
+    @Autowired
+    private NotificationMapper notificationMapper;
+
     @Transactional
-    public void insert(Comment comment) {
+    public void insert(Comment comment, User commentator) {
         //如果没有父问题 则抛出 "未选择任何问题或者评论进行回复" 异常
         if(comment.getParentId() == null || comment.getParentId() == 0){
             throw new CustomizeException(CustomizeErrorCode.TARGET_PARAM_NOT_FOUND);
@@ -46,22 +51,35 @@ public class CommentService {
         if(comment.getType() == null || !CommentTypeEnum.isExist(comment.getType())){
             throw new CustomizeException(CustomizeErrorCode.TYPE_PARAM_WRONG);
         }
-        //类型存在
+        //type = 2 回复评论
         if(comment.getType() == CommentTypeEnum.Comment.getType()){
-            //type = 2 回复评论
+
+            /**
+             * dbComment    : 根据回答人的id 去数据库搜索此回答 得到的对象
+             * comment      : 回复评论的对象
+             * parentComment: 发布回答的对象
+             */
             Comment dbComment = commentMapper.selectByPrimaryKey(comment.getParentId());
             if(dbComment == null){
-                //评论不存在
+                // 评论不存在
                 throw new CustomizeException(CustomizeErrorCode.COMMENT_NOT_FOUND);
             }
+            //回复问题
+            Question question = questionMapper.selectByPrimaryKey(dbComment.getParentId());
+            if(question == null){
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+            }
+            // 创建回复
             commentMapper.insert(comment);
-            //增加评论数
+            // 增加评论数
             Comment parentComment = new Comment();
-            parentComment.setId(comment.getParentId()); //根据父id 增加评论数
+            parentComment.setId(comment.getParentId()); // 根据父id 增加评论数
             parentComment.setCommentCount(1);
             commentExtMapper.incCommentCount(parentComment);
+            // 创建通知
+            CreateNotify(comment, dbComment.getCommentator(), commentator.getName(), comment.getContent(), NotificationEnum.REPLY_COMMENT,question.getId());
         }else {
-            //type = 1 回复问题
+            // type = 1 回复问题
             Question question = questionMapper.selectByPrimaryKey(comment.getParentId());
             if(question == null){
                 throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
@@ -69,7 +87,22 @@ public class CommentService {
             commentMapper.insert(comment);
             question.setCommentCount(1);
             questionExtMapper.incCommentCount(question);
+            // 创建通知
+            CreateNotify(comment, question.getCreator(), commentator.getName(),question.getTitle(),NotificationEnum.REPLY_QUESTION,question.getId());
         }
+    }
+
+    private void CreateNotify(Comment comment, Long receiver, String notifierName, String outerTitle, NotificationEnum notificationEnum, Long outerId) {
+        Notification notification = new Notification();
+        notification.setGmtCreate(System.currentTimeMillis());
+        notification.setType(notificationEnum.getType());
+        notification.setOuterId(outerId);
+        notification.setNotifier(comment.getCommentator());
+        notification.setStatus(NotificationStatusEnum.UNREAD.getStatus());
+        notification.setReceiver(receiver);
+        notification.setNotifierName(notifierName);
+        notification.setOuterTitle(outerTitle);
+        notificationMapper.insert(notification);
     }
 
     public List<CommentDTO> listByTargetId(Long id, CommentTypeEnum type) {

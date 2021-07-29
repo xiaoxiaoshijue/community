@@ -1,13 +1,16 @@
 package life.majiang.community.community.interceptor;
 
+import life.majiang.community.community.enums.NotificationStatusEnum;
 import life.majiang.community.community.mapper.UserMapper;
 import life.majiang.community.community.model.User;
 import life.majiang.community.community.model.UserExample;
+import life.majiang.community.community.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.management.Notification;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +20,9 @@ import java.util.List;
 public class Sessioninterceptor implements HandlerInterceptor {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private NotificationService notificationService;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Cookie[] cookies = request.getCookies();
@@ -29,7 +35,9 @@ public class Sessioninterceptor implements HandlerInterceptor {
                     List<User> users = userMapper.selectByExample(example);
                     //User user = userMapper.findByToken(token);  //检查数据库中是否存在此token
                     if(users.size() != 0){
+                        Long unreadCount = notificationService.unreadCount(users.get(0).getId());
                         request.getSession().setAttribute("user",users.get(0));   //存在此token 把user信息写到Session里去 实现登录持久化
+                        request.getSession().setAttribute("unreadMessage",unreadCount);
                     }
                 }
             }
