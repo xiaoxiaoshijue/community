@@ -1,6 +1,8 @@
 package life.majiang.community.community.controller;
 
 import life.majiang.community.community.dto.FileDTO;
+import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.provider.OSSClientUtil;
 import org.apache.tomcat.jni.OS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,7 @@ public class FileController {
             file.transferTo(newFile);
             url = ossClientUtil.uploadFile(newFile);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CustomizeException(CustomizeErrorCode.FILE_NOT_FOUND);
         }
         FileDTO fileDTO = new FileDTO();
         fileDTO.setSuccess(1);

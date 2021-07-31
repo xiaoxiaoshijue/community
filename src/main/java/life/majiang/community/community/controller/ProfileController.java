@@ -26,7 +26,7 @@ public class ProfileController {
                           Model model,
                           HttpServletRequest request,
                           @RequestParam(name = "page",defaultValue = "1")Integer page,
-                          @RequestParam(name = "size",defaultValue = "3")Integer size ){
+                          @RequestParam(name = "size",defaultValue = "6")Integer size ){
         User user = (User)request.getSession().getAttribute("user");
         System.out.println("当前登录uer的信息 ：" + user.toString());
         if(user == null){

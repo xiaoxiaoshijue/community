@@ -1,4 +1,4 @@
-package life.majiang.community.controller;
+package life.majiang.community.community.controller;
 
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;

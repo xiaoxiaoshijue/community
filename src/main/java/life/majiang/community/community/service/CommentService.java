@@ -52,13 +52,12 @@ public class CommentService {
             throw new CustomizeException(CustomizeErrorCode.TYPE_PARAM_WRONG);
         }
         //type = 2 回复评论
-        if(comment.getType() == CommentTypeEnum.Comment.getType()){
-
-            /**
-             * dbComment    : 根据回答人的id 去数据库搜索此回答 得到的对象
-             * comment      : 回复评论的对象
-             * parentComment: 发布回答的对象
-             */
+        /**
+         * dbComment    : 根据回答人的id 去数据库搜索此回答 得到的对象
+         * comment      : 回复评论的对象
+         * parentComment: 发布回答的对象
+         */
+        if ( comment.getType() == CommentTypeEnum.Comment.getType() ) {
             Comment dbComment = commentMapper.selectByPrimaryKey(comment.getParentId());
             if(dbComment == null){
                 // 评论不存在
@@ -93,6 +92,9 @@ public class CommentService {
     }
 
     private void CreateNotify(Comment comment, Long receiver, String notifierName, String outerTitle, NotificationEnum notificationEnum, Long outerId) {
+        if(receiver == comment.getCommentator()){
+            return;
+        }
         Notification notification = new Notification();
         notification.setGmtCreate(System.currentTimeMillis());
         notification.setType(notificationEnum.getType());
