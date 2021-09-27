@@ -10,15 +10,3 @@ create table notification
 	constraint NOTIFICATION_PK
 		primary key (id)
 );
-
-comment on column notification.notifier is '回复人';
-
-comment on column notification.receiver is '接收人';
-
-comment on column notification.outer_id is '问题id / 评论id 外键id';
-
-comment on column notification.type is '回复类型';
-
-comment on column notification.gmt_create is '回复时间';
-
-comment on column notification.status is '0未读 1已读';

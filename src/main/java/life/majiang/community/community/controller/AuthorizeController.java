@@ -6,6 +6,7 @@ import life.majiang.community.community.dto.GithubUser;
 import life.majiang.community.community.model.User;
 import life.majiang.community.community.provider.GithubProvider;
 import life.majiang.community.community.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 @Controller
+@Slf4j
 public class AuthorizeController {
     @Autowired
     private GithubProvider githubProvider;
@@ -52,7 +54,13 @@ public class AuthorizeController {
 
             User user = new User();
             String token = UUID.randomUUID().toString();
+            System.out.println("---------------------------------");
+            System.out.println("token = " + token);
+            System.out.println("---------------------------------");
             user.setToken(token);
+            //此处的token有两种情况
+            //当新建用户：       会将此token保存到用户表中
+            //当更新用户信息：   会将此token作为新的token更新到用户表中，以便于保持登录态
             user.setName(githubUser.getName());
             user.setAccountId(String.valueOf(githubUser.getId()));
             user.setAvatarUrl(githubUser.getAvatarUrl());
@@ -69,6 +77,7 @@ public class AuthorizeController {
 
         }else {
             //登陆失败
+            log.error("callbakc get github error,{}" , githubUser );
             return "redirect:/";
         }
         //System.out.println(user.getName());

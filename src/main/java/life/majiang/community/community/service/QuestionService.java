@@ -64,7 +64,7 @@ public class QuestionService {
 
         QuestionExample example = new QuestionExample();
         example.setOrderByClause("gmt_create desc");
-        questionQueryDTO.setPage(page);
+        questionQueryDTO.setPage(offset);
         questionQueryDTO.setSize(size);
         List<Question> questionList = questionExtMapper.selectBySearch(questionQueryDTO);
         //List<Question> questionList = questionMapper.selectByExample(example)   //查询question表中的信息 保存在List集合中

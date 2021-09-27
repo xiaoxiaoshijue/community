@@ -32,7 +32,6 @@ public class PaginationDTO<T> {
                 pages.add(page + i);
             }
         }
-
         //是否显示上一页
         if(page == 1){
             showPrevious = false;

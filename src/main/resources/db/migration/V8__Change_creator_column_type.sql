@@ -1,2 +1,2 @@
-alter table QUESTION alter column CREATOR BIGINT;
-alter table COMMENT alter column COMMENTATOR BIGINT not null;
+alter table QUESTION modify CREATOR BIGINT;
+alter table COMMENT modify COMMENTATOR BIGINT not null;

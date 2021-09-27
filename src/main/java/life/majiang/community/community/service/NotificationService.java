@@ -63,7 +63,6 @@ public class NotificationService {
         }
         paginationDTO.setData(notificationDTOS);
         return paginationDTO;
-
     }
 
     public Long unreadCount(Long userId) {
