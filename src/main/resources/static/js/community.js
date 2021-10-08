@@ -76,7 +76,9 @@ function collapseComments(e){
         /*comments.toggleClass("in");
         e.classList.toggle("active");*/
     }else {
-        $.getJSON("/comment/" + id, function (data) {
+        $.getJSON(
+            "/comment/" + id,
+            function (data){
             console.log(data);
             $.each(data.data.reverse(), function (index,comment) {
                 var mediaLeftElement = $("<div/>", {
@@ -110,23 +112,6 @@ function collapseComments(e){
 
                 subCommentContainer.prepend(commentElement);
             });
-
-
-            // var commentBody = $("comment-body-" + id);
-            // var items = [];
-            // $.each(data.data, function (comment) {
-            //     var c = $("<div/>", {
-            //         "class": "col-lg-12 col-md-12 col-sm-12 col-xs-12 comments",
-            //         html: comment.content
-            //     });
-            //     items.push(c);
-            // });
-            //
-            // commentBody.append($("<div/>", {
-            //     "class": "col-lg-12 col-md-12 col-sm-12 col-xs-12 collapse sub-comments",
-            //     "id": "comment-" + id,
-            //     html: items.join("")
-            // }));
         });
     }
 }

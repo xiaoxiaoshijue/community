@@ -4,9 +4,10 @@ import lombok.Data;
 
 @Data
 public class AccessTokenDTO {
+    private String grant_type;
     private String client_id;
     private String client_secret;
     private String code;
-    private String redirct_uri;
+    private String redirect_uri;
     private String state;
 }

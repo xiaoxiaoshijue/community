@@ -107,8 +107,19 @@ public class CommentService {
         notificationMapper.insert(notification);
     }
 
+    /**
+     *
+     * @param id   当type = 1时 表示question表中问题的id
+     *             当type = 2时 表示comment表中对应一级评论的id
+     * @param type 当type = 1
+     *             表示搜索当前问题下的所有一级评论
+     *             当type = 2
+     *             表示搜索一级评论下所有的二级评论
+     * @return
+     */
     public List<CommentDTO> listByTargetId(Long id, CommentTypeEnum type) {
         CommentExample example = new CommentExample();
+        //根据id -- parentId 和 type 查找评论
         example.createCriteria()
                 .andParentIdEqualTo(id)
                 .andTypeEqualTo(type.getType());
@@ -134,6 +145,7 @@ public class CommentService {
             commentDTO.setUser(userMap.get(comment.getCommentator()));
             return commentDTO;
         }).collect(Collectors.toList());
+        //最终返回所有的comment信息 加上 对应的User信息 包装在collectDTOS中
         return collectDTOS;
     }
 }

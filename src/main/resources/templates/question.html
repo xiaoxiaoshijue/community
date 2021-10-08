@@ -67,6 +67,7 @@
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 comments" th:each="comment : ${comments}">
                     <div class="media">
                         <div class="media-left">
+                            <!--头像-->
                             <a href="#">
                                 <img class="media-object img-rounded"
                                      th:src="${comment.user.avatarUrl}">
@@ -74,20 +75,28 @@
                         </div>
                         <div class="media-body" th:id="${'comment-body-'+comment.id}">
                             <h5 class="media-heading">
+                                <!--一级评论人用户名-->
                                 <span th:text="${comment.user.name}"></span>
                             </h5>
+                            <!--一级评论内容-->
                             <div th:text="${comment.content}"></div>
                             <div class="menu">
                                 <span class="glyphicon glyphicon-thumbs-up icon"></span>
-                                <!--展开二级评论-->
+
+
+                                <!--点击评论按钮展开二级评论
+                                    data-id 对应的二级评论的parentId
+                                -->
                                 <span th:data-id="${comment.id}" onclick="collapseComments(this)" class="comment-icon">
                                     <span class="glyphicon glyphicon-comment"></span>
                                     <span th:text="${comment.commentCount}"></span>
                                 </span>
 
 
+                                <!--显示时间-->
                                 <span class="pull-right"
-                                      th:text="${#dates.format(comment.gmtCreate,'yyyy-MM-dd')}"></span>
+                                      th:text="${#dates.format(comment.gmtCreate,'yyyy-MM-dd')}">
+                                </span>
                             </div>
                             <!--回复问题-->
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 collapse sub-comments"
@@ -109,7 +118,7 @@
                     提交回复
                 </h4>
                 <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12 comment-sp">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="comment_section">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="comment_section">·······
                     <div class="media" >
                         <div class="media-left">
                             <a href="#">

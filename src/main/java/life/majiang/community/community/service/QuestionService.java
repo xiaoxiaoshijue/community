@@ -40,6 +40,8 @@ public class QuestionService {
         if(StringUtils.isNotBlank(search)){
             String[] tags = StringUtils.split(search, " ");
             search = Arrays.stream(tags).collect(Collectors.joining("|"));
+        }else {
+            search = null;
         }
 
         Integer totalPage;

@@ -2,8 +2,11 @@ package life.majiang.community.community.controller;
 
 
 import life.majiang.community.community.dto.AccessTokenDTO;
+import life.majiang.community.community.dto.GiteeAccessTokenDTO;
+import life.majiang.community.community.dto.GiteeUser;
 import life.majiang.community.community.dto.GithubUser;
 import life.majiang.community.community.model.User;
+import life.majiang.community.community.provider.GiteeProvider;
 import life.majiang.community.community.provider.GithubProvider;
 import life.majiang.community.community.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.Cookie;
@@ -25,14 +29,58 @@ public class AuthorizeController {
     private GithubProvider githubProvider;
 
     @Autowired
+    private GiteeProvider giteeProvider;
+
+    @Autowired
     private UserService userService;
 
     @Value("${github.client.id}")
-    private String clientId;
+    private String githubClientId;
     @Value("${github.client.secret}")
-    private String clientSecret;
+    private String githubClientSecret;
     @Value("${github.redirect.uri}")
-    private String redirectUri;
+    private String githubRedirectUri;
+
+    @Value("${gitee.client.id}")
+    private String giteeClientId;
+    @Value("${gitee.client.secret}")
+    private String giteeClientSecret;
+    @Value("${gitee.redirect.uri}")
+    private String giteeRedirectUri;
+
+    @RequestMapping("/login")
+    public String login(){
+        System.out.println("进入login");
+        return "redirect:/" ;
+    }
+    @GetMapping("/giteeCallback")
+    public String giteeCallback(@RequestParam("code")String code,
+                                @RequestParam(name="state",required = false)String state,
+                                HttpServletResponse response){
+        AccessTokenDTO accessTokenDTO = new AccessTokenDTO();
+        accessTokenDTO.setCode(code);
+        accessTokenDTO.setRedirect_uri(giteeRedirectUri);
+        accessTokenDTO.setClient_id(giteeClientId);
+        accessTokenDTO.setState(state);
+        accessTokenDTO.setClient_secret(giteeClientSecret);
+        accessTokenDTO.setGrant_type("authorization_code");
+        GiteeAccessTokenDTO giteeAccessTokenDTO = giteeProvider.getAccessToken(accessTokenDTO);
+        System.out.println("giteeAccessTokenDTO = " + giteeAccessTokenDTO);
+        //通过accessToken获取giiEE用户信息:name id avatarUrl
+        GiteeUser giteeUser = giteeProvider.getUser(giteeAccessTokenDTO.getAccess_token());
+        System.out.println(giteeUser);
+        if(giteeUser != null){
+            String token = UUID.randomUUID().toString();
+            userService.createOrUpdateGiteeUser(giteeUser,giteeAccessTokenDTO,token);
+            response.addCookie(new Cookie("token",token));
+        }
+        else {
+            //登陆失败
+            log.error("callbakck get githee error,{}" , giteeUser );
+        }
+        return "redirect:/";
+    }
+
 
     @GetMapping("/callback")
     public String callback(@RequestParam(name="code")String code,
@@ -41,10 +89,10 @@ public class AuthorizeController {
                            HttpServletResponse response){
         AccessTokenDTO accessTokenDTO = new AccessTokenDTO();
         accessTokenDTO.setCode(code);
-        accessTokenDTO.setRedirct_uri(redirectUri);
+        accessTokenDTO.setRedirect_uri(githubRedirectUri);
         accessTokenDTO.setState(state);
-        accessTokenDTO.setClient_id(clientId);
-        accessTokenDTO.setClient_secret(clientSecret);
+        accessTokenDTO.setClient_id(githubClientId);
+        accessTokenDTO.setClient_secret(githubClientSecret);
 
         String accessToken = githubProvider.getAccessToken(accessTokenDTO);
         GithubUser githubUser = githubProvider.getUser(accessToken);
