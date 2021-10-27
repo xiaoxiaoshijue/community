@@ -21,37 +21,38 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <form class="navbar-form navbar-left" action="/" method="get" >
                     <div class="form-group">
-                        <input type="text" class="form-control" placeholder="搜索话题" name="search">
+                        <input type="text" class="form-control" placeholder="搜索话题(多个话题空格分隔)" name="search" style="width:250px">
                     </div>
                     <button type="submit" class="btn btn-default">搜索</button>
                 </form>
                 <ul class="nav navbar-nav navbar-right">
-                    <li th:if="${session.user != null}">
+                    <li th:if="${session.users != null}">
                         <a href="/publish">提问</a>
                     </li>
                     <li>
                         <a href="/profile/replies">通知 <span class="badge" th:text="${session.unreadMessage}"></span></a>
                     </li>
-                    <li class="dropdown" th:if="${session.user != null}">
+                    <li class="dropdown" th:if="${session.users != null}">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                            aria-haspopup="true" aria-expanded="false" >
-                            <span th:text="${session.user.getName()}"></span>
+                            <span th:text="${session.users.getUserName()}"></span>
                             <span class="caret"></span></a>
                         <ul class="dropdown-menu">
+                            <li><a href="/center/personal">个人中心</a></li>
                             <li><a href="/profile/questions">我的问题</a></li>
                             <li><a href="/logout">退出登录</a></li>
                         </ul>
                     </li>
-                    <li th:if="${session.user == null}">
+                    <li th:if="${session.users == null}">
                         <a href="https://github.com/login/oauth/authorize?client_id=68a1f60191a5e24b04e4&redirect_uri=http://localhost:8887/callback&scope=user&state=1">Github登录</a>
                     </li>
-                    <li th:if="${session.user == null}">
+                    <li th:if="${session.users == null}">
                         <a href="https://gitee.com/oauth/authorize?client_id=62d333333abf6b0ec269c3061bd2b8615ee372c59c849af3600b6adee4ddb5ad&redirect_uri=http://localhost:8887/giteeCallback&response_type=code&scope=user_info">Gitee登录</a>
                     </li>
-                    <li th:if="${session.user == null}">
+                    <li th:if="${session.users == null}">
                         <a th:href="@{/login}">登录</a>
                     </li>
-                    <li th:if="${session.user == null}">
+                    <li th:if="${session.users == null}">
                         <a href="@{/register}">注册</a>
                     </li>
                 </ul>

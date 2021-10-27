@@ -4,6 +4,7 @@ import life.majiang.community.community.cache.TagCache;
 import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.model.Question;
 import life.majiang.community.community.model.User;
+import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.QuestionService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,9 +75,9 @@ public class PublishController {
         }
 
 
-        User user = (User)request.getSession().getAttribute("user");
+        Users users = (Users)request.getSession().getAttribute("users");
         //user==null 未登录,在model中存储错误信息
-        if(user == null){
+        if(users == null){
             model.addAttribute("error","用户未登录");
             return "publish";
         }
@@ -84,11 +85,15 @@ public class PublishController {
         question.setTitle(title);
         question.setDescription(description);
         question.setTag(tag);
-        question.setCreator(user.getId());
+        question.setCreator(users.getUserId());
         question.setId(id);
         question.setViewCount(0);
         question.setCommentCount(0);
         question.setLikeCount(0);
+        /**
+         * 如果是创新问题则传来的id = null
+         * 如果是修改问题传来的id为要修改的问题的i
+         */
         questionService.createOrUpdate(question);
 
         return "redirect:/";

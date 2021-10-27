@@ -4,6 +4,7 @@ import life.majiang.community.community.dto.NotificationDTO;
 import life.majiang.community.community.enums.NotificationEnum;
 import life.majiang.community.community.mapper.NotificationMapper;
 import life.majiang.community.community.model.User;
+import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,11 +21,11 @@ public class NotificationController {
     @GetMapping("/notification/{id}")
     public String profile(HttpServletRequest request,
                           @PathVariable(name = "id")Long id){
-        User user = (User) request.getSession().getAttribute("user");
-        if(user == null){
+        Users users = (Users) request.getSession().getAttribute("users");
+        if(users == null){
             return "redirect:/";
         }
-        NotificationDTO notificationDTO = notificationService.read(id,user);
+        NotificationDTO notificationDTO = notificationService.read(id,users);
         if(NotificationEnum.REPLY_COMMENT.getType() == notificationDTO.getType()
         ||NotificationEnum.REPLY_QUESTION.getType() == notificationDTO.getType()){
             return "redirect:/question/"+notificationDTO.getOuterId();

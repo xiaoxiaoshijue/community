@@ -17,6 +17,25 @@ function comment(e){
     var content = $("#input-"+commentId).val();
     comment2target(commentId,2,content);
 }
+function addLikeCount(e){
+    var commentId = e.getAttribute("data-id");
+    $.ajax({
+        type:"POST",
+        url:"/addCommentLikeCount",
+        contentType: 'application/json',
+        data:JSON.stringify({
+            "commentId":commentId
+        }),
+        success:function (response){
+            if(response == 1){
+                window.location.reload();
+            }else {
+                window.alert("点赞出现错误，请稍后再试");
+            }
+        },
+        dataType: "json"
+    });
+}
 function comment2target(targetId,type,content){
     /*var questionId = $("#question_id").val();
     var content = $("#comment_content").val();*/
@@ -60,16 +79,16 @@ function comment2target(targetId,type,content){
 }
 /** * 展开二级评论
  */
-function collapseComments(e){
+function collapseComments(this1,e){
     /*疑问  ？    mapper按照的是parentid 搜索问题 而视频中这里传入的是 问题的id*/
-    var id = e.getAttribute("data-id");
+    var id = e;
 /*
     var comments = $("#comment-"+id);
 */
     var subCommentContainer = $("#comment-" + id);
     //展开二级评论
     subCommentContainer.toggleClass("in");
-    e.classList.toggle("active");
+    this1.classList.toggle("active");
     //标记二级评论展开状态
     //e.setAttribute("data-collage");
     if(subCommentContainer.children().length != 1){
@@ -92,7 +111,7 @@ function collapseComments(e){
                     "class": "media-body"
                 }).append($("<h5/>", {
                     "class": "media-heading",
-                    "html": comment.user.name
+                    "html": comment.user.userName
                 })).append($("<div/>", {
                     "html": comment.content
                 })).append($("<div/>", {
@@ -127,7 +146,7 @@ function selectTag(that){
     var value = that.getAttribute("data-tag");
     var previous = $("#tag").val();
     var tags = previous.split(',');
-    if(!previous){//如果标签没内容直接添加
+    if(!previous){//如果标签没内容直接添加t
         $('#tag').val(value);
     }else {//如果标签有内容且不重复 拼接字符串后添加
         if(jQuery.inArray(value,tags) === -1){

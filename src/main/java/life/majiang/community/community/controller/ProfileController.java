@@ -2,6 +2,7 @@ package life.majiang.community.community.controller;
 
 import life.majiang.community.community.dto.PaginationDTO;
 import life.majiang.community.community.model.User;
+import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.NotificationService;
 import life.majiang.community.community.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,20 +28,20 @@ public class ProfileController {
                           HttpServletRequest request,
                           @RequestParam(name = "page",defaultValue = "1")Integer page,
                           @RequestParam(name = "size",defaultValue = "6")Integer size ){
-        User user = (User)request.getSession().getAttribute("user");
-        System.out.println("当前登录uer的信息 ：" + user.toString());
-        if(user == null){
+        Users users = (Users)request.getSession().getAttribute("users");
+        System.out.println("当前登录uer的信息 ：" + users.toString());
+        if(users == null){
             return "redirect:/";
         }
 
         if("questions".equals(action)){
             model.addAttribute("section","questions");
             model.addAttribute("sectionName","我的提问");
-            PaginationDTO paginationDTO = questionService.listByUserId(user.getId(), page, size);
+            PaginationDTO paginationDTO = questionService.listByUserId(users.getUserId(), page, size);
             model.addAttribute("pagination",paginationDTO);
             System.out.println(paginationDTO.toString());
         }else if("replies".equals(action)){
-            PaginationDTO paginationDTO = notificationService.list(user.getId(),page,size);
+            PaginationDTO paginationDTO = notificationService.list(users.getUserId(),page,size);
             model.addAttribute("section","replies");
             model.addAttribute("pagination",paginationDTO);
             model.addAttribute("sectionName","最新回复");

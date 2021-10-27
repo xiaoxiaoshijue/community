@@ -7,6 +7,7 @@ import life.majiang.community.community.enums.CommentTypeEnum;
 import life.majiang.community.community.exception.CustomizeErrorCode;
 import life.majiang.community.community.model.Comment;
 import life.majiang.community.community.model.User;
+import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.CommentService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +16,23 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class CommentController {
     @Autowired
     private CommentService commentService;
-
+    @ResponseBody
+    @PostMapping("/addCommentLikeCount")
+    public Integer addLikeCount(@RequestBody Map<String,Long> map){
+        return commentService.addLikeCount(map.get("commentId"));
+    }
     @ResponseBody
     @RequestMapping(value = "/comment")
     public Object post(@RequestBody CommentCreateDTO commentCreateDTO,//传输的json对象
                        HttpServletRequest request){
-        User user = (User)request.getSession().getAttribute("user");
-        if(user == null){
+        Users users = (Users)request.getSession().getAttribute("users");
+        if(users == null){
             return ResultDTO.errorOf(CustomizeErrorCode.NO_LOGIN);
         }
         if(commentCreateDTO == null || StringUtils.isBlank(commentCreateDTO.getContent())){ // commentCreateDTO.getContent() == null || commentCreateDTO.getContent() == ""
@@ -38,10 +44,10 @@ public class CommentController {
         comment.setType(commentCreateDTO.getType());          //1为
         comment.setGmtModified(System.currentTimeMillis());
         comment.setGmtCreate(System.currentTimeMillis());
-        comment.setCommentator(user.getId());
+        comment.setCommentator(users.getUserId());
         comment.setLikeCount(0L);
         comment.setCommentCount(0);
-        commentService.insert(comment, user);
+        commentService.insert(comment, users);
         return ResultDTO.okOf(null);
     }
 

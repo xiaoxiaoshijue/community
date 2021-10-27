@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>个人中心</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css"/>
+    <link rel="stylesheet" href="/css/community.css">
+    <script src="/js/jquery-3.4.1.min.js"></script>
+    <script src="/js/bootstrap.min.js" type="application/javascript"></script>
+</head>
+<body>
+    <div th:insert="~{navigation::copy}"></div>
+    <div class="main container-fluid center" >
+        <div class="col-xs-9 col-sm-9 col-md-9 col-lg-9" th:if="${section == 'personal'}">
+
+            <!--个人头像 + 用户名 + 注册时间-->
+            <div class="page-header">
+                <div class="media section" >
+                    <div class="media-left media-middle">
+                        <a href="#">
+                            <img class="media-object img-circle" th:src="${users.avatarUrl}" alt="图片无法显示">
+                        </a>
+                    </div>
+                    <div class="media-body">
+                        <h4 class="media-heading" th:text="${users.userName}"></h4>
+                        <span th:text="注册时间 + ${#dates.format(users.CreateTime,'yyyy-MM-dd hh:mm:ss')}"></span>
+                    </div>
+                </div>
+            </div>
+            <!--个人信息-->
+            <h3>基本信息</h3>
+            <form>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">用户名</label>
+                    <input type="email" class="form-control" id="exampleInputEmail1" disabled  th:placeholder="${users.userName}">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">用户id</label>
+                    <input type="email" class="form-control" id="exampleInputEmail2" disabled  th:placeholder="${users.userId}">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">手机号</label>
+                    <input type="email" class="form-control" id="exampleInputEmail3"disabled  th:placeholder="${users.mobile}" th:if="${users.mobile != null}">
+                    <input type="email" class="form-control" id="exampleInputEmail31"disabled  th:placeholder="未填写" th:if="${users.mobile == null}">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">性别</label>
+                    <input type="email" class="form-control" id="exampleInputEmail4" disabled  th:placeholder="${users.sex}" th:if="${users.sex != null}">
+                    <input type="email" class="form-control" id="exampleInputEmail41" disabled  th:placeholder="未填写" th:if="${users.sex == null}">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">真实姓名</label>
+                    <input type="email" class="form-control" id="exampleInputEmail5" disabled  th:placeholder="${users.realName}" th:if="${users.realName != null}">
+                    <input type="email" class="form-control" id="exampleInputEmail51" disabled  th:placeholder="未填写" th:if="${users.realName == null}">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">用户描述</label>
+                    <input type="email" class="form-control" id="exampleInputEmail6" disabled  th:placeholder="${users.userInfo}" th:if="${users.userInfo != null}">
+                    <input type="email" class="form-control" id="exampleInputEmail61" disabled  th:placeholder="未填写" th:if="${users.userInfo == null}">
+                </div>
+
+            </form>
+        </div>
+        <div class="col-xs-9 col-sm-9 col-md-9 col-lg-9" th:if="${section == 'account'}">
+            <!--个人头像 + 用户名 + 注册时间-->
+            <div class="page-header">
+                <div class="media section" >
+                      <div class="media-left media-middle">
+                        <a href="#">
+                            <img class="media-object img-circle" th:src="${users.avatarUrl}" alt="图片无法显示">
+                        </a>
+                    </div>
+                    <div class="media-body">
+                        <h4 class="media-heading" th:text="${users.userName}"></h4>
+                        <span th:text="注册时间 + ${#dates.format(users.CreateTime,'yyyy-MM-dd hh:mm:ss')}"></span>
+                    </div>
+                </div>
+            </div>
+            <h3>账号设置</h3>
+            <table class="table table-bordered">
+                <tr>
+                    <td>三方账号</td>
+                </tr>
+                <tr>
+                    <td th:if=""></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+            <ul class="list-group section" >
+                <li class="list-group-item">
+                    <a href="/center/personal"
+                       th:class="${section == 'personal'}?'active list-group-item' :'list-group-item'" >个人信息</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="/center/account"
+                       th:class="${section == 'account'}?'active list-group-item' :'list-group-item'" >账号信息</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div th:insert="~{foot::foot}"></div>
+</body>
+</html>

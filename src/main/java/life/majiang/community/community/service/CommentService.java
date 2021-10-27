@@ -33,6 +33,8 @@ public class CommentService {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private UsersMapper usersMapper;
 
     @Autowired
     private CommentExtMapper commentExtMapper;
@@ -41,7 +43,7 @@ public class CommentService {
     private NotificationMapper notificationMapper;
 
     @Transactional
-    public void insert(Comment comment, User commentator) {
+    public void insert(Comment comment, Users commentator) {
         //如果没有父问题 则抛出 "未选择任何问题或者评论进行回复" 异常
         if(comment.getParentId() == null || comment.getParentId() == 0){
             throw new CustomizeException(CustomizeErrorCode.TARGET_PARAM_NOT_FOUND);
@@ -76,7 +78,7 @@ public class CommentService {
             parentComment.setCommentCount(1);
             commentExtMapper.incCommentCount(parentComment);
             // 创建通知
-            CreateNotify(comment, dbComment.getCommentator(), commentator.getName(), comment.getContent(), NotificationEnum.REPLY_COMMENT,question.getId());
+            CreateNotify(comment, dbComment.getCommentator(), commentator.getUserName(), comment.getContent(), NotificationEnum.REPLY_COMMENT,question.getId());
         }else {
             // type = 1 回复问题
             Question question = questionMapper.selectByPrimaryKey(comment.getParentId());
@@ -87,14 +89,14 @@ public class CommentService {
             question.setCommentCount(1);
             questionExtMapper.incCommentCount(question);
             // 创建通知
-            CreateNotify(comment, question.getCreator(), commentator.getName(),question.getTitle(),NotificationEnum.REPLY_QUESTION,question.getId());
+            CreateNotify(comment, question.getCreator(), commentator.getUserName(),question.getTitle(),NotificationEnum.REPLY_QUESTION,question.getId());
         }
     }
 
     private void CreateNotify(Comment comment, Long receiver, String notifierName, String outerTitle, NotificationEnum notificationEnum, Long outerId) {
-        if(receiver == comment.getCommentator()){
+        /*if(receiver == comment.getCommentator()){
             return;
-        }
+        }*/
         Notification notification = new Notification();
         notification.setGmtCreate(System.currentTimeMillis());
         notification.setType(notificationEnum.getType());
@@ -133,11 +135,11 @@ public class CommentService {
         List<Long> usersId = new ArrayList<>();
         usersId.addAll(commentators);
         //获取评论人并转换为Map
-        UserExample example1 = new UserExample();
+        UsersExample example1 = new UsersExample();
         example1.createCriteria()
-                .andIdIn(usersId);
-        List<User> users = userMapper.selectByExample(example1);
-        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(user -> user.getId(), user -> user));
+                .andUserIdIn(usersId);
+        List<Users> users = usersMapper.selectByExample(example1);
+        Map<Long, Users> userMap = users.stream().collect(Collectors.toMap(Users::getUserId, user -> user));
         //转换 comment 称为 commentDTO
         List<CommentDTO> collectDTOS = comments.stream().map(comment -> {
             CommentDTO commentDTO = new CommentDTO();
@@ -147,5 +149,12 @@ public class CommentService {
         }).collect(Collectors.toList());
         //最终返回所有的comment信息 加上 对应的User信息 包装在collectDTOS中
         return collectDTOS;
+    }
+
+    public int addLikeCount(Long commentId) {
+        Comment comment = new Comment();
+        comment.setId(commentId);
+        int i = commentExtMapper.addLikeCount(comment);
+        return i;
     }
 }

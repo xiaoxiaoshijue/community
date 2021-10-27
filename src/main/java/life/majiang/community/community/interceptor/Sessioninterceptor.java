@@ -2,8 +2,11 @@ package life.majiang.community.community.interceptor;
 
 import life.majiang.community.community.enums.NotificationStatusEnum;
 import life.majiang.community.community.mapper.UserMapper;
+import life.majiang.community.community.mapper.UsersMapper;
 import life.majiang.community.community.model.User;
 import life.majiang.community.community.model.UserExample;
+import life.majiang.community.community.model.Users;
+import life.majiang.community.community.model.UsersExample;
 import life.majiang.community.community.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,8 @@ import java.util.List;
 public class Sessioninterceptor implements HandlerInterceptor {
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private UsersMapper usersMapper;
 
     @Autowired
     private NotificationService notificationService;
@@ -31,14 +36,16 @@ public class Sessioninterceptor implements HandlerInterceptor {
                 if("token".equalsIgnoreCase(cookie.getName())){
 //                  服务端从客户端拿到token
                     String token = cookie.getValue();
-                    UserExample example = new UserExample();
-                    example.createCriteria().andTokenEqualTo(token);
+                    /*UserExample example = new UserExample();
+                    example.createCriteria().andTokenEqualTo(token);2021109*/
+                    UsersExample usersExample = new UsersExample();
+                    usersExample.createCriteria().andTokenEqualTo(token);//2021109
 //                  服务端拿到token以后在数据库中验证token是否正确，并取出对应的用户信息返回给客户端
-                    List<User> users = userMapper.selectByExample(example);
+                    List<Users> users = usersMapper.selectByExample(usersExample);
 //                  User user = userMapper.findByToken(token);  //检查数据库中是否存在此token
                     if(users.size() != 0){
-                        Long unreadCount = notificationService.unreadCount(users.get(0).getId());
-                        request.getSession().setAttribute("user",users.get(0));   //存在此token 把user信息写到Session里去 实现登录持久化
+                        Long unreadCount = notificationService.unreadCount(users.get(0).getUserId());
+                        request.getSession().setAttribute("users",users.get(0));   //存在此token 把user信息写到Session里去 实现登录持久化
                         request.getSession().setAttribute("unreadMessage",unreadCount);
                     }
                 }

@@ -23,4 +23,10 @@
       COMMENT_COUNT = COMMENT_COUNT + #{commentCount,jdbcType=INTEGER}
       where id = #{id}
     </update>
+    <update id="addLikeCount" parameterType="life.majiang.community.community.model.Comment">
+        UPDATE COMMENT
+        SET
+        LIKE_COUNT = LIKE_COUNT + 1
+        WHERE id = #{id}
+    </update>
 </mapper>

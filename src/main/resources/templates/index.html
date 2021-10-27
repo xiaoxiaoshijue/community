@@ -9,7 +9,7 @@
     <script src="js/jquery-3.4.1.min.js"></script>
     <script src="js/bootstrap.min.js" type="application/javascript"></script>
 </head>
-    <script type="application/javascript">
+    <script th:inline="javascript">
         window.onload = function(){
             var item = window.localStorage.getItem("closable");
             if(item == "true"){
@@ -17,6 +17,33 @@
                 window.localStorage.removeItem("closable");
             }
         }
+            $(document).ready(function(){
+                var message = [[${pagination}]];
+                //console.log(message);
+                //let result = message.match(/!\[(.*?)\]\((.*?)\)/);
+                //console.log(result);
+                const pattern = /!\[(.*?)\]\((.*?)\)/mg;
+                for(var i = 0; i < message.data.length; i++){
+                    var ms = message.data[i].description;
+                    var matcher;
+                    var mss = ms;
+                    while ((matcher = pattern.exec(mss)) !== null) {
+                        console.log(matcher);
+                        //var result = ms.match(/!\[(.*?)\]\((.*?)\)/);
+                            var r = matcher[0];
+                            console.log(r);
+                            //console.log(result);
+                            //console.log(ms);
+                            var ms = ms.replace(r,"[图片]");
+                            //console.log(mss);
+                           // $("#" + "textPreview" + i).text(ms);
+                    }
+                    /*没有图片链接*/
+                    $("#" + "textPreview" + i).text(ms);
+                    //console.log(ms);
+                    //console.log(result[0]);
+                }
+            });
     </script>
 <body>
 <div th:insert="~{navigation.html :: copy}"></div>
@@ -33,14 +60,16 @@
             <div class="media" th:each="question : ${pagination.data}">
                 <div class="media-left">
                     <a th:href="${'/question/' + question.id}">
-                        <img class="media-object img-rounded" th:src="${question.user.avatarUrl}" >
+                        <img class="media-object img-rounded" th:src="${question.users.avatarUrl}" ><!--2021109-->
                     </a>
                 </div>
                 <div class="media-body">
                     <h4 class="media-heading" >
                         <a th:href=" @{'/question/' + ${question.id}} " th:text="${question.title}"></a>
                     </h4>
-                    <span th:text="${question.description}"></span><br>
+                    <span  class="ellipsis" style="width:600px;text-align:left;display:inline-block;"
+                          th:id="'textPreview' + ${questionStat.index}" ></span><br>
+                    <!--th:text="${question.description}" -->
                     <span class="text-desc"><span th:text="${question.commentCount}"></span>个回复 - <span th:text="${question.viewCount}"></span>次浏览 - <span th:text="${#dates.format(question.gmtCreate,'yyyy-MM-dd HH:mm:ss')}"></span></span>
                 </div>
             </div>

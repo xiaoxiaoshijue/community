@@ -71,10 +71,10 @@ public class NotificationService {
         return notificationMapper.countByExample(example);
     }
 
-    public NotificationDTO read(Long id, User user) {
+    public NotificationDTO read(Long id, Users user) {
         Notification notification = notificationMapper.selectByPrimaryKey(id);
         //通知接收人和用户不是同一人
-        if(!Objects.equals(notification.getReceiver(), user.getId())){
+        if(!Objects.equals(notification.getReceiver(), user.getUserId())){
             throw new CustomizeException(CustomizeErrorCode.READ_NOTIFICATION_FAIL);
         }
         //没查到此消息

@@ -9,9 +9,11 @@ import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.QuestionExtMapper;
 import life.majiang.community.community.mapper.QuestionMapper;
 import life.majiang.community.community.mapper.UserMapper;
+import life.majiang.community.community.mapper.UsersMapper;
 import life.majiang.community.community.model.Question;
 import life.majiang.community.community.model.QuestionExample;
 import life.majiang.community.community.model.User;
+import life.majiang.community.community.model.Users;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.beans.BeanUtils;
@@ -34,9 +36,12 @@ public class QuestionService {
     private UserMapper userMapper;
 
     @Autowired
+    private UsersMapper usersMapper;
+
+    @Autowired
     private QuestionExtMapper questionExtMapper;
 
-    public PaginationDTO list(String search, Integer page, Integer size) {
+    public PaginationDTO<QuestionDTO> list(String search, Integer page, Integer size) {
         if(StringUtils.isNotBlank(search)){
             String[] tags = StringUtils.split(search, " ");
             search = Arrays.stream(tags).collect(Collectors.joining("|"));
@@ -50,7 +55,7 @@ public class QuestionService {
         QuestionQueryDTO questionQueryDTO = new QuestionQueryDTO();
         questionQueryDTO.setSearch(search);
         Integer totalCount = questionExtMapper.countBySearch(questionQueryDTO);
-        if(totalCount % size == 0){
+        if(totalCount % size == 0 && totalCount != 0){
             totalPage = totalCount / size;
         }else {
             totalPage = totalCount / size + 1;
@@ -69,13 +74,16 @@ public class QuestionService {
         questionQueryDTO.setPage(offset);
         questionQueryDTO.setSize(size);
         List<Question> questionList = questionExtMapper.selectBySearch(questionQueryDTO);
-        //List<Question> questionList = questionMapper.selectByExample(example)   //查询question表中的信息 保存在List集合中
+        //List<Question> questionList = questionMapper.selectByExample(example)   //查询question表中的信息 保存在List集合中ID
         List<QuestionDTO> questionDTOList = new ArrayList<>(); //创建一个QuestionDTO类型集合，用来保存结果
         for (Question question : questionList) {        //循环遍历 把结果保存在questionDTO对象中
+        Users users = usersMapper.selectByPrimaryKey(question.getCreator());
+/* 2021109
             User user = userMapper.selectByPrimaryKey(question.getCreator()); //通过question中的Creator属性对应user中的id属性 在数据库中查找对应的uesr
+*/
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(question,questionDTO);         //把question对象中的属性赋值给questionDTO对象
-            questionDTO.setUser(user);
+            questionDTO.setUsers(users);
             questionDTOList.add(questionDTO);
         }
         paginationDTO.setData(questionDTOList);
@@ -110,11 +118,13 @@ public class QuestionService {
         //List<Question> questionList = questionMapper.listByUserId(id,offset,size);   //查询question表中的信息 保存在List集合中
         List<QuestionDTO> questionDTOList = new ArrayList<>(); //创建一个QuestionDTO类型集合，用来保存结果
         for (Question question : questionList) {        //循环遍历 把结果保存在questionDTO对象中
-            User user = userMapper.selectByPrimaryKey(question.getCreator()); //通过question中的Creator属性对应user中的id属性 在数据库中查找对应的uesr
+            Users users = usersMapper.selectByPrimaryKey(question.getCreator()); //通过question中的Creator属性对应user中的id属性 在数据库中查找对应的uesr
+            //2021109
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(question,questionDTO);         //把question对象中的属性赋值给questionDTO对象
-            questionDTO.setUser(user);
-            questionDTOList.add(questionDTO);
+            questionDTO.setUsers(users);
+            //2021109
+            questionDTOList.add(questionDTO);//所有的问题放入此集合中 传到paginationDTO的data属性中返回前端
         }
         paginationDTO.setData(questionDTOList);
         return paginationDTO;
@@ -128,8 +138,8 @@ public class QuestionService {
         }
         QuestionDTO questionDTO = new QuestionDTO();
         BeanUtils.copyProperties(question,questionDTO);
-        User user = userMapper.selectByPrimaryKey(question.getCreator());
-        questionDTO.setUser(user);
+        Users users = usersMapper.selectByPrimaryKey(question.getCreator());
+        questionDTO.setUsers(users);
         return questionDTO;
     }
 
@@ -142,18 +152,21 @@ public class QuestionService {
             question.setCommentCount(0);
             questionMapper.insert(question);
         }else {
-            question.setGmtModified(question.getGmtCreate());
-            Question updateQuestion = new Question();
+            question.setGmtModified(System.currentTimeMillis());
+            /*Question updateQuestion = new Question();
             updateQuestion.setGmtModified(System.currentTimeMillis());
             updateQuestion.setTitle(question.getTitle());
             updateQuestion.setDescription(question.getDescription());
             updateQuestion.setTag(question.getTag());
+            updateQuestion.setId(question.getId());
             QuestionExample example = new QuestionExample();
             example.createCriteria()
-                    .andIdEqualTo(question.getCreator());
-            int update = questionMapper.updateByExampleSelective(updateQuestion, example);
+                    .andIdEqualTo(question.getId());
+            int update = questionMapper.updateByExampleSelective(question, example);*/
+            int update = questionMapper.updateByPrimaryKeySelective(question);
             if(update != 1){
                 throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                //你寻找的问题不见了 后续增加吧主删帖功能
             }
         }
     }
