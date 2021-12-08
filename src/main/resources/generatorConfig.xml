@@ -18,7 +18,7 @@
             <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
         <javaClientGenerator targetPackage="life.majiang.community.community.mapper" targetProject="src\main\java" type="XMLMAPPER">
-            <propgit erty name="enableSubPackages" value="true"/>
+            <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
         <table tableName="user" domainObjectName="User"></table>
         <table tableName="question" domainObjectName="Question"></table>
