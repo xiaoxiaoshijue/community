@@ -7,7 +7,7 @@ CREATE TABLE `user_auth_rel` (
                                  `auth_id` bigint(11) DEFAULT NULL,
                                  `auth_type` varchar(20) DEFAULT NULL,
                                  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARACTER SET = utf8 COLLATE utf8_general_ci;
 
 DROP TABLE IF EXISTS `user_third_auth`;
 
@@ -19,7 +19,7 @@ CREATE TABLE `user_third_auth` (
                                    `expire_in` bigint(20) DEFAULT NULL COMMENT '过期时间 = 获取令牌时间+令牌有效时间',
                                    `refresh_token` varchar(100) DEFAULT NULL COMMENT 'token过期后通过此参数获取新的token',
                                    PRIMARY KEY (`auth_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARACTER SET = utf8 COLLATE utf8_general_ci;
 
 
 DROP TABLE IF EXISTS `users`;
@@ -31,8 +31,12 @@ CREATE TABLE `users` (
                          `avatar_url` varchar(100) DEFAULT NULL COMMENT '头像',
                          `user_name` varchar(100) DEFAULT NULL COMMENT '用户名',
                          `mobile` int(11) DEFAULT NULL COMMENT '手机号',
+                         `sex` varchar(10) DEFAULT NULL COMMENT '性别',
+                         `real_name` varchar(32) DEFAULT NULL COMMENT '真实姓名',
+                         `email` varchar(32) DEFAULT NULL COMMENT '电子邮箱',
+                         `create_time` BIGINT DEFAULT NULL COMMENT '创建时间',
                          PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARACTER SET = utf8 COLLATE utf8_general_ci;
 DROP TABLE IF EXISTS `user_local_auth`;
 
 CREATE TABLE `user_local_auth` (
@@ -41,4 +45,4 @@ CREATE TABLE `user_local_auth` (
                                    `user_password` varchar(100) DEFAULT NULL,
                                    `mobile` int(11) DEFAULT NULL,
                                    PRIMARY KEY (`auth_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARACTER SET = utf8 COLLATE utf8_general_ci;

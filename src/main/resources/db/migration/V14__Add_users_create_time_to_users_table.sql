@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD COLUMN create_time BIGINT comment'创建时间';
