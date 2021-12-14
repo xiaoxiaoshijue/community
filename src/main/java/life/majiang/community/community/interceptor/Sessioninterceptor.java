@@ -21,6 +21,7 @@ import java.util.List;
 
 @Service
 public class Sessioninterceptor implements HandlerInterceptor {
+
     @Autowired
     private UserMapper userMapper;
     @Autowired
@@ -30,9 +31,12 @@ public class Sessioninterceptor implements HandlerInterceptor {
     private NotificationService notificationService;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("-----------------------------------------------进入perHandle--------------------------------------------------------------");
         Cookie[] cookies = request.getCookies();
         if(cookies != null && cookies.length != 0){
             for (Cookie cookie : cookies) {
+                System.out.println("cookiesName = " + cookie.getName());
+                System.out.println("cookiesValue = " + cookie.getValue());
                 if("token".equalsIgnoreCase(cookie.getName())){
 //                  服务端从客户端拿到token
                     String token = cookie.getValue();
@@ -51,6 +55,7 @@ public class Sessioninterceptor implements HandlerInterceptor {
                 }
             }
         }
+
         return true;
         //return true ：继续执行
         //return false ：会停止
