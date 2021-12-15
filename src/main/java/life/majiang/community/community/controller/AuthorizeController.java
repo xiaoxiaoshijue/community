@@ -64,11 +64,16 @@ public class AuthorizeController {
         accessTokenDTO.setState(state);
         accessTokenDTO.setClient_secret(giteeClientSecret);
         accessTokenDTO.setGrant_type("authorization_code");
+
         GiteeAccessTokenDTO giteeAccessTokenDTO = giteeProvider.getAccessToken(accessTokenDTO);
+
         System.out.println("giteeAccessTokenDTO = " + giteeAccessTokenDTO);
+
         //通过accessToken获取giiEE用户信息:name id avatarUrl
         GiteeUser giteeUser = giteeProvider.getUser(giteeAccessTokenDTO.getAccess_token());
         System.out.println(giteeUser);
+
+
         if(giteeUser != null){
             String token = UUID.randomUUID().toString();
             userService.createOrUpdateGiteeUser(giteeUser,giteeAccessTokenDTO,token);
@@ -114,7 +119,7 @@ public class AuthorizeController {
             user.setAvatarUrl(githubUser.getAvatarUrl());
             user.setGmtCreate(System.currentTimeMillis());
             user.setGmtModified(user.getGmtCreate());
-
+            //userService.createOrUpdateGihubUser(user,);
             userService.createOrUpdate(user);
 
             response.addCookie(new Cookie("token",token));

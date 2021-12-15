@@ -2,6 +2,7 @@ package life.majiang.community.community.service;
 
 import life.majiang.community.community.dto.GiteeAccessTokenDTO;
 import life.majiang.community.community.dto.GiteeUser;
+import life.majiang.community.community.dto.GithubUser;
 import life.majiang.community.community.mapper.UserAuthRelMapper;
 import life.majiang.community.community.mapper.UserMapper;
 import life.majiang.community.community.mapper.UserThirdAuthMapper;
@@ -114,4 +115,5 @@ public class UserService {
             usersMapper.updateByPrimaryKeySelective(users);
         }
     }
+
 }

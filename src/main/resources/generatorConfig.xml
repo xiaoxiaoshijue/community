@@ -6,7 +6,7 @@
     <context id="DB2Tables" targetRuntime="MyBatis3">
         <plugin type="org.mybatis.generator.plugins.RowBoundsPlugin"></plugin>
         <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://localhost:3306/community"
-                        userId="root" password="Xrh19780!"/>
+                        userId="root" password="itishardx"/>
         <javaTypeResolver>
             <property name="forceBigDecimals" value="false"/>
         </javaTypeResolver>
@@ -20,7 +20,6 @@
         <javaClientGenerator targetPackage="life.majiang.community.community.mapper" targetProject="src\main\java" type="XMLMAPPER">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
-        <table tableName="user" domainObjectName="User"></table>
         <table tableName="question" domainObjectName="Question"></table>
         <table tableName="comment" domainObjectName="Comment"></table>
         <table tableName="notification" domainObjectName="Notification"></table>
