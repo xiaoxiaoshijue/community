@@ -30,7 +30,7 @@ CREATE TABLE `users` (
                          `user_info` varchar(200) DEFAULT NULL COMMENT '。。。。',
                          `avatar_url` varchar(100) DEFAULT NULL COMMENT '头像',
                          `user_name` varchar(100) DEFAULT NULL COMMENT '用户名',
-                         `mobile` int(11) DEFAULT NULL COMMENT '手机号',
+                         `mobile` varchar(36) DEFAULT NULL COMMENT '手机号',
                          `sex` varchar(10) DEFAULT NULL COMMENT '性别',
                          `real_name` varchar(32) DEFAULT NULL COMMENT '真实姓名',
                          `email` varchar(32) DEFAULT NULL COMMENT '电子邮箱',
@@ -43,6 +43,6 @@ CREATE TABLE `user_local_auth` (
                                    `auth_id` bigint(11) NOT NULL AUTO_INCREMENT,
                                    `user_name` varchar(100) DEFAULT NULL,
                                    `user_password` varchar(100) DEFAULT NULL,
-                                   `mobile` int(11) DEFAULT NULL,
+                                   `mobile` varchar(36) DEFAULT NULL,
                                    PRIMARY KEY (`auth_id`)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET = utf8 COLLATE utf8_general_ci;

@@ -52,10 +52,10 @@
                         <a th:href="@{'https://gitee.com/oauth/authorize?client_id=62d333333abf6b0ec269c3061bd2b8615ee372c59c849af3600b6adee4ddb5ad&redirect_uri=http://'+ #{ipaddr} + ':8887/giteeCallback&response_type=code&scope=user_info' }">Gitee登录</a>
                     </li>
                     <li th:if="${session.users == null}">
-                        <a th:href="@{/login}">登录</a>
+                        <a th:href="@{/toLogin}">登录</a>
                     </li>
                     <li th:if="${session.users == null}">
-                        <a href="@{/register}">注册</a>
+                        <a th:href="@{/register}">注册</a>
                     </li>
                 </ul>
             </div><!-- /.navbar-collapse -->

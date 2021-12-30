@@ -2,30 +2,24 @@ package life.majiang.community.community.service;
 
 import life.majiang.community.community.dto.NotificationDTO;
 import life.majiang.community.community.dto.PaginationDTO;
-import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.enums.NotificationEnum;
 import life.majiang.community.community.enums.NotificationStatusEnum;
 import life.majiang.community.community.exception.CustomizeErrorCode;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.NotificationMapper;
-import life.majiang.community.community.mapper.UserMapper;
 import life.majiang.community.community.model.*;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
 
     @Autowired
     private NotificationMapper notificationMapper;
-    @Autowired
-    private UserMapper userMapper;
 
     public PaginationDTO list(Long userId, Integer page, Integer size) {
         Integer totalPage;

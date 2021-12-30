@@ -3,7 +3,6 @@ package life.majiang.community.community.controller;
 import life.majiang.community.community.cache.TagCache;
 import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.model.Question;
-import life.majiang.community.community.model.User;
 import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.QuestionService;
 import org.apache.commons.lang3.StringUtils;

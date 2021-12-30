@@ -1,10 +1,6 @@
 package life.majiang.community.community.interceptor;
 
-import life.majiang.community.community.enums.NotificationStatusEnum;
-import life.majiang.community.community.mapper.UserMapper;
 import life.majiang.community.community.mapper.UsersMapper;
-import life.majiang.community.community.model.User;
-import life.majiang.community.community.model.UserExample;
 import life.majiang.community.community.model.Users;
 import life.majiang.community.community.model.UsersExample;
 import life.majiang.community.community.service.NotificationService;
@@ -13,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.management.Notification;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,20 +18,15 @@ import java.util.List;
 public class Sessioninterceptor implements HandlerInterceptor {
 
     @Autowired
-    private UserMapper userMapper;
-    @Autowired
     private UsersMapper usersMapper;
 
     @Autowired
     private NotificationService notificationService;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("-----------------------------------------------进入perHandle--------------------------------------------------------------");
         Cookie[] cookies = request.getCookies();
         if(cookies != null && cookies.length != 0){
             for (Cookie cookie : cookies) {
-                System.out.println("cookiesName = " + cookie.getName());
-                System.out.println("cookiesValue = " + cookie.getValue());
                 if("token".equalsIgnoreCase(cookie.getName())){
 //                  服务端从客户端拿到token
                     String token = cookie.getValue();

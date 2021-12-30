@@ -18,6 +18,11 @@
             }
         }
             $(document).ready(function(){
+                //注册成功提示注册成功 还有用户的id 账号
+                if($('#msg').val() != "" ){
+                    alert($('#msg').val());
+                }
+                //图片连接转换成图片
                 var message = [[${pagination}]];
                 //console.log(message);
                 //let result = message.match(/!\[(.*?)\]\((.*?)\)/);
@@ -28,10 +33,8 @@
                     var matcher;
                     var mss = ms;
                     while ((matcher = pattern.exec(mss)) !== null) {
-                        console.log(matcher);
                         //var result = ms.match(/!\[(.*?)\]\((.*?)\)/);
                             var r = matcher[0];
-                            console.log(r);
                             //console.log(result);
                             //console.log(ms);
                             var ms = ms.replace(r,"[图片]");
@@ -44,6 +47,133 @@
                     //console.log(result[0]);
                 }
             });
+           function isSubmit(){
+               var a = checkPassword();
+               var b = checkUserName();
+               var c = checkMobile();
+               if(a != true || b != true || c != true){
+                   return false;
+               }else {
+                   var url = "/register/" + $('#username').val() + "/" +  $('#password').val() + "/" + $('#mobile').val();
+                   $("#register").attr("action",url);
+                   return true;
+               }
+
+           }
+           function checkMobile(e){
+               var pattern = /^(?!.*?[\D]{11,})(?=.*?[\d])\d{11}$/g
+               var mobileInfo = $('#mobileInfo');
+               if($('#mobile').val() == ""){
+                   mobileInfo.text("手机号不能为空");
+                   mobileInfo.css({
+                       "display":"inline-block"
+                   });
+                   mobileInfo.addClass("alert alert-danger");
+                   mobileInfo.removeClass("alert-success");
+                   return false;
+               }else if(!pattern.test($('#mobile').val())){
+                   mobileInfo.text("请输入正确的手机号(11位数字)");
+                   mobileInfo.css({
+                       "display":"inline-block"
+                   });
+                   mobileInfo.addClass("alert alert-danger");
+                   mobileInfo.removeClass("alert-success");
+                   return false;
+               }
+               else {
+                   mobileInfo.css({
+                       "display":"inline-block"
+                   });
+                   mobileInfo.addClass("alert alert-success");
+                   mobileInfo.removeClass("alert-danger");
+                   return true;
+               }
+           }
+           function checkPassword(e){
+               //密码不包括特殊字符 至少一个小写字母 至少一个大写字母 至少一个数组 6~16位密码
+               var pattern = /^(?!.*?[\s\·！@#￥%……&*（）——+~!@#$%^&*\(\)_\+·\[\]\\;',\.\/【】、；‘，。、\{\}\|:"<>\?])(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9]).{6,16}$/g
+               var passwordInfo =  $('#passwordInfo');
+               if(!pattern.test($('#password').val())){
+                   passwordInfo.text("密码不满足规范");
+                   passwordInfo.css({
+                       "display":"inline-block"
+                   });
+                   passwordInfo.addClass("alert alert-danger");
+                   passwordInfo.removeClass("alert-success");
+                   return false;
+               }else {
+                   passwordInfo.text("密码可用");
+                   passwordInfo.css({
+                       "display":"inline-block"
+                   });
+                   passwordInfo.addClass("alert alert-success");
+                   passwordInfo.removeClass("alert-danger");
+                   return true;
+               }
+           }
+           function checkUserName(e){
+               var result = false;
+                $.ajax({
+                    type:"POST",
+                    url:"/register/isUserNameExit",
+                    contentType:'application/json',
+                    data: JSON.stringify({
+                        "userName":$('#username').val(),
+                    }),
+                    async: false,
+                    success:function(data){
+                        var userNameInfo = $("#usernameinfo");
+                        if(data == "用户名可用"){
+                            userNameInfo.text(data);
+                           /* $("#usernameinfo").toggleClass("");*/
+                            userNameInfo.css({
+                                "display":"inline-block"
+                            });
+                            userNameInfo.addClass("alert alert-success");
+                            userNameInfo.removeClass("alert-danger");
+                            result = true;
+                        }
+                        if(data == "用户名重复" || data == "用户名不能为空"){
+                            userNameInfo.text(data);
+                            /* $("#usernameinfo").toggleClass("");*/
+                            userNameInfo.css({
+                                "display":"inline-block"
+                            });
+                            userNameInfo.addClass("alert alert-danger");
+                            userNameInfo.removeClass("alert-success");
+                        }
+                    }
+                });
+                return result;
+           }
+        function isLogin(){
+            var loginUserName = $('#loginUserName').val();
+            var loginPassword = $('#loginPassword').val();
+            var temp = true;
+            $.ajax({
+                type:"POST",
+                url:"/login",
+                contentType:'application/json',
+                data: JSON.stringify({
+                    "loginUserName":loginUserName,
+                    "loginPassword":loginPassword
+                }),
+                async: false,
+                success:function(data){
+                    if(data == "登录成功"){
+                        alert(data);
+                    }else {
+                        alert(data);
+                        temp = false;
+                    }
+                }
+            });
+            if(temp == false){
+                window.location.href = "/toLogin";/*为什么这里用的post请求？*/
+            }else {
+                window.location.href = "/";/*为什么这里用的post请求？*/
+            }
+        }
     </script>
 <body>
 <div th:insert="~{navigation.html :: copy}"></div>
@@ -51,13 +181,85 @@
 <div class="container-fluid main">
     <div class="row">
         <div class="col-lg-9 col-md-9 col-sm-9 col-xs-9">
-            <h2>
+            <!--存储注册相关 后端返回的信息-->
+            <input type="hidden" th:value="${result}" id="msg"/>
+            <h2 th:if="${msg !='register' && msg != 'login'}">
                 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
                 发现
             </h2>
+            <h2 th:if="${msg =='register'}">
+                <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+                注册
+            </h2>
             <hr>
+            <!--注册页面-->
+            <div th:if="${msg =='register'}">
+                <form class="form-horizontal" id="register" method="post" onsubmit="return isSubmit()">
+                    <div class="form-group">
+                        <label for="username" class="col-sm-2 control-label">请输入用户名</label>
+                        <div class="col-sm-10">
+                            <input type="text" style="width: 450px;display: inline-block" class="form-control" id="username" placeholder="请输入用户名" onblur="checkUserName(this)">
+                            <div  role="alert" style="width: 200px;display: none" id="usernameinfo">...</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10">
+                            <input type="password" style="width: 450px;display: inline-block" class="form-control" id="password" placeholder="至少一个小写字母 一个大写字母 一个数字 6~16位 不包括特殊字符" onblur="checkPassword(this)">
+                            <div class="alert alert-danger" role="alert" style="width: 200px;display: none;" id="passwordInfo" >...</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mobile" class="col-sm-2 control-label">手机号</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" style="width: 450px;display: inline-block" id="mobile" placeholder="请输入手机号" onblur="checkMobile(this)">
+                            <div class="alert alert-danger" role="alert" style="width: 200px;display: none;" id="mobileInfo" >...</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-default">提交</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
-            <div class="media" th:each="question : ${pagination.data}">
+
+            <!--登录-->
+            <h2 th:if="${msg =='login'}">
+                <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+                登录
+            </h2>
+            <hr>
+            <!--登录页面-->
+            <div th:if="${msg =='login'}">
+                <form class="form-horizontal" id="login" method="post" >
+                    <div class="form-group">
+                        <label for="username" class="col-sm-2 control-label">请输入用户名</label>
+                        <div class="col-sm-10">
+                            <input type="text" style="width: 200px;display: inline-block" class="form-control" id="loginUserName" placeholder="请输入用户名" >
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10">
+                            <input type="password" style="width: 200px;display: inline-block" class="form-control" id="loginPassword" placeholder="请输入密码" >
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button  type="button" class="btn btn-default" onclick="isLogin()">提交</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+
+
+
+
+
+            <div th:if="${msg !='register' && msg != 'login'}" class="media" th:each="question : ${pagination.data}">
                 <div class="media-left">
                     <a th:href="${'/question/' + question.id}">
                         <img class="media-object img-rounded" th:src="${question.users.avatarUrl}" ><!--2021109-->
@@ -73,7 +275,7 @@
                     <span class="text-desc"><span th:text="${question.commentCount}"></span>个回复 - <span th:text="${question.viewCount}"></span>次浏览 - <span th:text="${#dates.format(question.gmtCreate,'yyyy-MM-dd HH:mm:ss')}"></span></span>
                 </div>
             </div>
-            <nav aria-label="Page navigation">
+            <nav th:if="${msg !='register' && msg != 'login'}" aria-label="Page navigation">
                 <ul class="pagination">
                     <li th:if="${pagination.showFirstPage}">
                         <a th:href="@{/(page=1,search=${search})}" aria-label="Previous">

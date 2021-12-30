@@ -32,8 +32,6 @@ public class CommentService {
     private QuestionExtMapper questionExtMapper;
 
     @Autowired
-    private UserMapper userMapper;
-    @Autowired
     private UsersMapper usersMapper;
 
     @Autowired

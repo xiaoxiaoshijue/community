@@ -6,3 +6,4 @@
 []https://docs.github.com/en/developers/apps/getting-started-with-apps
 ##工具
 https://github.com/xurenhai1/community
+ mvn -Dmybatis.generator.overwrite=true mybatis-generator:generate 

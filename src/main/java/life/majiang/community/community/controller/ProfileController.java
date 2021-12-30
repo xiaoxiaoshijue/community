@@ -1,7 +1,6 @@
 package life.majiang.community.community.controller;
 
 import life.majiang.community.community.dto.PaginationDTO;
-import life.majiang.community.community.model.User;
 import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.NotificationService;
 import life.majiang.community.community.service.QuestionService;

@@ -26,6 +26,8 @@
         <table tableName="user_auth_rel" domainObjectName="UserAuthRel"></table>
         <table tableName="users" domainObjectName="Users"></table>
         <table tableName="user_local_auth" domainObjectName="UserLocalAuth"></table>
-        <table tableName="user_third_auth" domainObjectName="UserThirdAuth"></table>
+        <table tableName="user_third_auth" domainObjectName="UserThirdAuth">
+
+        </table>
     </context>
 </generatorConfiguration>

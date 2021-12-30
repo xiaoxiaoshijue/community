@@ -6,7 +6,6 @@ import life.majiang.community.community.dto.ResultDTO;
 import life.majiang.community.community.enums.CommentTypeEnum;
 import life.majiang.community.community.exception.CustomizeErrorCode;
 import life.majiang.community.community.model.Comment;
-import life.majiang.community.community.model.User;
 import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.CommentService;
 import org.apache.commons.lang3.StringUtils;

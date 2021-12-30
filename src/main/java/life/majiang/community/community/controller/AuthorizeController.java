@@ -1,25 +1,24 @@
 package life.majiang.community.community.controller;
 
 
-import life.majiang.community.community.dto.AccessTokenDTO;
-import life.majiang.community.community.dto.GiteeAccessTokenDTO;
-import life.majiang.community.community.dto.GiteeUser;
-import life.majiang.community.community.dto.GithubUser;
-import life.majiang.community.community.model.User;
+import life.majiang.community.community.dto.*;
+import life.majiang.community.community.model.UserLocalAuth;
 import life.majiang.community.community.provider.GiteeProvider;
 import life.majiang.community.community.provider.GithubProvider;
 import life.majiang.community.community.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -48,11 +47,7 @@ public class AuthorizeController {
     @Value("${gitee.redirect.uri}")
     private String giteeRedirectUri;
 
-    @RequestMapping("/login")
-    public String login(){
-        System.out.println("进入login");
-        return "redirect:/" ;
-    }
+
     @GetMapping("/giteeCallback")
     public String giteeCallback(@RequestParam("code")String code,
                                 @RequestParam(name="state",required = false)String state,
@@ -105,22 +100,21 @@ public class AuthorizeController {
 
         if(githubUser != null){
 
-            User user = new User();
             String token = UUID.randomUUID().toString();
             System.out.println("---------------------------------");
             System.out.println("token = " + token);
             System.out.println("---------------------------------");
-            user.setToken(token);
+            //user.setToken(token);
             //此处的token有两种情况
             //当新建用户：       会将此token保存到用户表中
             //当更新用户信息：   会将此token作为新的token更新到用户表中，以便于保持登录态
-            user.setName(githubUser.getName());
-            user.setAccountId(String.valueOf(githubUser.getId()));
-            user.setAvatarUrl(githubUser.getAvatarUrl());
-            user.setGmtCreate(System.currentTimeMillis());
-            user.setGmtModified(user.getGmtCreate());
-            //userService.createOrUpdateGihubUser(user,);
-            userService.createOrUpdate(user);
+            //user.setName(githubUser.getName());
+            //user.setAccountId(String.valueOf(githubUser.getId()));
+            //user.setAvatarUrl(githubUser.getAvatarUrl());
+            //user.setGmtCreate(System.currentTimeMillis());
+            //user.setGmtModified(user.getGmtCreate());
+            userService.createOrUpdateGithubUser(githubUser,token,accessToken);
+            //userService.createOrUpdate(user);
 
             response.addCookie(new Cookie("token",token));
 
@@ -145,5 +139,66 @@ public class AuthorizeController {
         response.addCookie(cookie);
         return "redirect:/";
     }
+    @PostMapping("/register/{username}/{password}/{mobile}")
+    //@ResponseBody
+    public String register(
+                           Model model,
+                           @PathVariable(value = "username")String userName,
+                           @PathVariable(value = "password")String userPassword,
+                           @PathVariable(value = "mobile")String mobile,
+                           RedirectAttributes redirectAttributes
+                           ){
+//        if(){
+//              如果验证码错误 直接返回错误信息
+//        }
 
+
+        UserLocalAuth userLocalAuth = new UserLocalAuth();
+        userLocalAuth.setMobile(mobile);
+        userLocalAuth.setUserName(userName);
+        userLocalAuth.setUserPassword(userPassword);
+        String result = userService.createOrUpdateLocalUser(userLocalAuth);
+        model.addAttribute("login",true);
+
+        redirectAttributes.addFlashAttribute("result",result);
+        //redirectAttributes.addAttribute("registermsg","registerSuccess");
+        return "redirect:/";
+    }
+    @GetMapping("/register")
+    public String toRegister(RedirectAttributes redirectAttributes){
+        redirectAttributes.addFlashAttribute("msg","register");
+        return "redirect:/";
+    }
+    @ResponseBody
+    @PostMapping("/register/isUserNameExit")
+    public String isUserNameExist(@RequestBody Map<String,String> datas){
+        if("".equals(datas.get("userName"))){
+            return "用户名不能为空";
+        }
+        //验证用户名是否重复
+        if(!userService.isUserNameExist(datas.get("userName"))){
+            return "用户名重复";
+        }
+        return "用户名可用";
+    }
+    @RequestMapping("/toLogin")
+    public String toLogin(RedirectAttributes redirectAttributes){
+        redirectAttributes.addFlashAttribute("msg","login");
+        return "redirect:/";
+    }
+    @ResponseBody
+    @PostMapping("/login")
+    public String login(@RequestBody Map<String,String> datas,
+                        HttpServletResponse response){
+        String token = UUID.randomUUID().toString();
+        String loginUserName = datas.get("loginUserName");
+        String loginPassword = datas.get("loginPassword");
+        String result = userService.login(loginUserName,loginPassword,token);
+        if("登录成功".equals(result)){
+            response.addCookie(new Cookie("token",token));
+            return result;
+        }else {
+            return result;
+        }
+    }
 }

@@ -45,9 +45,6 @@ public class OSSClientUtil {
     }
     public String uploadFile(File file) {
 // 创建OSSClient实例。
-        System.out.println(accessKeyId);
-        System.out.println(accessKeySecret);
-        System.out.println(endpoint);
         try{
             ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         }catch (Exception e){
