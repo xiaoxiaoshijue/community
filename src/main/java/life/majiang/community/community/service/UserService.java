@@ -13,6 +13,8 @@ import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -40,7 +42,7 @@ public class UserService {
                 .andOpenidEqualTo(giteeUser.getId())
                 .andLoginTypeEqualTo("gitee");
         List<UserThirdAuth> isThirdUsersFirstLoginIn = userThirdAuthMapper.selectByExample(userThirdAuthExample);
-
+//一、      如果是第一次登录，并且账号无绑定信息
         if(isThirdUsersFirstLoginIn.size() == 0){
 //      1、把授权信息保存在user_third_auth表中
             userThirdAuthMapper.insert(userThirdAuth);
@@ -65,7 +67,7 @@ public class UserService {
             userAuthRel.setAuthType("third");
             userAuthRelMapper.insert(userAuthRel);
         }else {
-//      如果不是第一次登录 需要在user_third_auth表中更新access_token 和 expire_in 和 refresh_token
+//二、      如果不是第一次登录 需要在user_third_auth表中更新access_token 和 expire_in 和 refresh_token
             List<UserThirdAuth> dbUserThirdAuth = userThirdAuthMapper.selectByExample(userThirdAuthExample);
             userThirdAuth.setAuthId(dbUserThirdAuth.get(0).getAuthId());
             UserThirdAuthExample thirdAuthExample = new UserThirdAuthExample();
@@ -85,8 +87,78 @@ public class UserService {
             UsersExample usersExample1 = new UsersExample();
             usersMapper.updateByPrimaryKeySelective(users);
         }
+//    三、如果是第一个登录并且账号存在绑定信息
     }
-
+    public Boolean addGiteeUser(GiteeUser giteeUser, GiteeAccessTokenDTO giteeAccessTokenDTO,Users users) {
+        UserThirdAuth userThirdAuth = new UserThirdAuth();
+        userThirdAuth.setAccessToken(giteeAccessTokenDTO.getAccess_token());
+        userThirdAuth.setLoginType("gitee");
+        userThirdAuth.setOpenid(giteeUser.getId());
+        userThirdAuth.setRefreshToken(giteeAccessTokenDTO.getRefresh_token());
+        userThirdAuth.setExpireIn(System.currentTimeMillis() + giteeAccessTokenDTO.getExpires_in());
+//      首先查询第三方用户表 看是否账号已绑定
+        UserThirdAuthExample userThirdAuthExample = new UserThirdAuthExample();
+        userThirdAuthExample.createCriteria()
+                .andOpenidEqualTo(giteeUser.getId())
+                .andLoginTypeEqualTo("gitee");
+        List<UserThirdAuth> isThirdUsersFirstLoginIn = userThirdAuthMapper.selectByExample(userThirdAuthExample);
+//一、      如果是并且账号无绑定信息
+        if(isThirdUsersFirstLoginIn.size() == 0){
+//      1、把授权信息保存在user_third_auth表中
+            userThirdAuthMapper.insert(userThirdAuth);
+            List<UserThirdAuth> dbUserThirdAuth = userThirdAuthMapper.selectByExample(userThirdAuthExample);
+            UsersExample usersExample = new UsersExample();
+            usersExample.createCriteria().andUserNameEqualTo(users.getUserName());
+            List<Users> dbUsers = usersMapper.selectByExample(usersExample);
+/*//      然后新建用户表保存第三方用户信息
+            userThirdAuthMapper.insert(userThirdAuth);*/
+//      3、获取Users表的id 和 Auth_Third的id 存入rel 关系标总
+            UserAuthRel userAuthRel = new UserAuthRel();
+            userAuthRel.setUserId(dbUsers.get(0).getUserId());
+            userAuthRel.setAuthId(dbUserThirdAuth.get(0).getAuthId());
+            userAuthRel.setAuthType("third");
+            userAuthRelMapper.insert(userAuthRel);
+            return true;
+        }
+//      如果此账号已经被绑定
+        else {
+            return false;
+        }
+    }
+public Boolean addGithubUser(GithubUser githubUser, String access_token,Users users) {
+        UserThirdAuth userThirdAuth = new UserThirdAuth();
+        userThirdAuth.setAccessToken(access_token);
+        userThirdAuth.setLoginType("github");
+        userThirdAuth.setOpenid(githubUser.getId());
+//      首先查询第三方用户表 看是否账号已绑定
+        UserThirdAuthExample userThirdAuthExample = new UserThirdAuthExample();
+        userThirdAuthExample.createCriteria()
+                .andOpenidEqualTo(githubUser.getId())
+                .andLoginTypeEqualTo("github");
+        List<UserThirdAuth> isThirdUsersFirstLoginIn = userThirdAuthMapper.selectByExample(userThirdAuthExample);
+//一、      如果是并且账号无绑定信息
+        if(isThirdUsersFirstLoginIn.size() == 0){
+//      1、把授权信息保存在user_third_auth表中
+            userThirdAuthMapper.insert(userThirdAuth);
+            List<UserThirdAuth> dbUserThirdAuth = userThirdAuthMapper.selectByExample(userThirdAuthExample);
+            UsersExample usersExample = new UsersExample();
+            usersExample.createCriteria().andUserNameEqualTo(users.getUserName());
+            List<Users> dbUsers = usersMapper.selectByExample(usersExample);
+/*//      然后新建用户表保存第三方用户信息
+            userThirdAuthMapper.insert(userThirdAuth);*/
+//      3、获取Users表的id 和 Auth_Third的id 存入rel 关系标总
+            UserAuthRel userAuthRel = new UserAuthRel();
+            userAuthRel.setUserId(dbUsers.get(0).getUserId());
+            userAuthRel.setAuthId(dbUserThirdAuth.get(0).getAuthId());
+            userAuthRel.setAuthType("third");
+            userAuthRelMapper.insert(userAuthRel);
+            return true;
+        }
+//      如果此账号已经被绑定
+        else {
+            return false;
+        }
+    }
 
 
 
@@ -215,7 +287,8 @@ public class UserService {
             Long auth_id = localUser.get(0).getAuthId();
             UserAuthRelExample userAuthRelExample = new UserAuthRelExample();
             userAuthRelExample.createCriteria()
-                    .andUserIdEqualTo(auth_id);
+                    .andAuthIdEqualTo(auth_id)
+                    .andAuthTypeEqualTo("local");
             Long user_id = userAuthRelMapper.selectByExample(userAuthRelExample).get(0).getUserId();
             Users users = new Users();
             users.setToken(token);
@@ -226,5 +299,80 @@ public class UserService {
         }else {
             return "账号或者密码错误，登录失败";
         }
+    }
+
+    /**
+     * 本质上在rel表中建立关系
+     * @param userLocalAuth 本地用户
+     * @param userThirdAuth 第三方用户
+     * @param usersId 要绑定的用户id
+     * @return
+     */
+    public String bindAccount(UserLocalAuth userLocalAuth,
+                              UserThirdAuth userThirdAuth,
+                              Long usersId){
+        UserAuthRel userAuthRel = new UserAuthRel();
+        if(userLocalAuth == null){
+            userAuthRel.setAuthId(userThirdAuth.getAuthId());
+            userAuthRel.setAuthType(userThirdAuth.getLoginType());
+            userAuthRel.setUserId(usersId);
+            userAuthRelMapper.insert(userAuthRel);
+        }else if(userThirdAuth == null){
+            userAuthRel.setAuthId(userLocalAuth.getAuthId());
+            userAuthRel.setAuthType("local");
+            userAuthRel.setUserId(usersId);
+            userLocalAuthMapper.insert(userLocalAuth);
+        }
+
+        return "1";
+    }
+
+    /**
+     * 获取users下所有第三方账户
+     */
+    public List<UserThirdAuth> getAllUsers(Users users) {
+        List<UserThirdAuth> returnList = new LinkedList<>();
+        UsersExample usersExample = new UsersExample();
+        usersExample.createCriteria()
+                .andUserNameEqualTo(users.getUserName());
+        List<Users> dbUsers = usersMapper.selectByExample(usersExample);
+        if(dbUsers != null && dbUsers.get(0) != null){
+            UserAuthRelExample userAuthRelExample = new UserAuthRelExample();
+            userAuthRelExample.createCriteria()
+                    .andUserIdEqualTo(dbUsers.get(0).getUserId())
+                    .andAuthTypeEqualTo("third");
+            List<UserAuthRel> dbUserAuthRel = userAuthRelMapper.selectByExample(userAuthRelExample);
+            Iterator iterator = dbUserAuthRel.iterator();
+            while (iterator.hasNext()){
+                UserAuthRel userAuthRel = (UserAuthRel) iterator.next();
+                UserThirdAuthExample userThirdAuthExample = new UserThirdAuthExample();
+                userThirdAuthExample.createCriteria()
+                        .andAuthIdEqualTo(userAuthRel.getAuthId());
+                List<UserThirdAuth> dbuserThirdAuth = userThirdAuthMapper.selectByExample(userThirdAuthExample);
+                if(dbuserThirdAuth != null && dbuserThirdAuth.get(0) != null){
+                    returnList.add(dbuserThirdAuth.get(0));
+                }
+            }
+            return returnList;
+        }
+        return null;
+    }
+
+    /**
+     * 删除对应authId authType的第三方用户数据
+     * 设计 userThirdAuth 和 userAuthRel表
+     */
+    public String delUserByAuthIdAndAuthType(Long authId, String authType) {
+        UserThirdAuthExample userThirdAuthExample = new UserThirdAuthExample();
+        userThirdAuthExample.createCriteria().andAuthIdEqualTo(authId);
+        int i = userThirdAuthMapper.deleteByExample(userThirdAuthExample);
+
+        UserAuthRelExample userAuthRelExample = new UserAuthRelExample();
+        userAuthRelExample.createCriteria().andAuthIdEqualTo(authId).andAuthTypeEqualTo("third");
+        int i1 = userAuthRelMapper.deleteByExample(userAuthRelExample);
+        if(i == 1 && i1 == 1){
+            return "删除成功";
+        }
+        return "删除失败";
     }
 }

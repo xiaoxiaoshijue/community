@@ -5,13 +5,27 @@ import life.majiang.community.community.dto.GiteeAccessTokenDTO;
 import life.majiang.community.community.dto.AccessTokenDTO;
 import life.majiang.community.community.dto.GiteeUser;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
 public class GiteeProvider {
-    public GiteeAccessTokenDTO getAccessToken(AccessTokenDTO accessTokenDTO){
+    @Value("${gitee.client.id}")
+    private String giteeClientId;
+    @Value("${gitee.client.secret}")
+    private String giteeClientSecret;
+    @Value("${gitee.redirect.uri}")
+    private String giteeRedirectUri;
+    public GiteeAccessTokenDTO getAccessToken(String code, String state){
+        AccessTokenDTO accessTokenDTO = new AccessTokenDTO();
+        accessTokenDTO.setCode(code);
+        accessTokenDTO.setRedirect_uri(giteeRedirectUri);
+        accessTokenDTO.setClient_id(giteeClientId);
+        accessTokenDTO.setState(state);
+        accessTokenDTO.setClient_secret(giteeClientSecret);
+        accessTokenDTO.setGrant_type("authorization_code");
         MediaType mediaType = MediaType.get("application/json; charset=utf-8");
         //1 . 拿到OkHttpClient对象
         OkHttpClient client = new OkHttpClient();
@@ -46,5 +60,9 @@ public class GiteeProvider {
                 e.printStackTrace();
             }
         return null;
+    }
+
+    public void login(GiteeUser giteeUser, GiteeAccessTokenDTO giteeAccessTokenDTO, String token) {
+
     }
 }

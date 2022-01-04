@@ -3,6 +3,7 @@ package life.majiang.community.community.controller;
 
 import life.majiang.community.community.dto.*;
 import life.majiang.community.community.model.UserLocalAuth;
+import life.majiang.community.community.model.Users;
 import life.majiang.community.community.provider.GiteeProvider;
 import life.majiang.community.community.provider.GithubProvider;
 import life.majiang.community.community.service.UserService;
@@ -51,28 +52,31 @@ public class AuthorizeController {
     @GetMapping("/giteeCallback")
     public String giteeCallback(@RequestParam("code")String code,
                                 @RequestParam(name="state",required = false)String state,
-                                HttpServletResponse response){
-        AccessTokenDTO accessTokenDTO = new AccessTokenDTO();
-        accessTokenDTO.setCode(code);
-        accessTokenDTO.setRedirect_uri(giteeRedirectUri);
-        accessTokenDTO.setClient_id(giteeClientId);
-        accessTokenDTO.setState(state);
-        accessTokenDTO.setClient_secret(giteeClientSecret);
-        accessTokenDTO.setGrant_type("authorization_code");
-
-        GiteeAccessTokenDTO giteeAccessTokenDTO = giteeProvider.getAccessToken(accessTokenDTO);
-
-        System.out.println("giteeAccessTokenDTO = " + giteeAccessTokenDTO);
-
-        //通过accessToken获取giiEE用户信息:name id avatarUrl
-        GiteeUser giteeUser = giteeProvider.getUser(giteeAccessTokenDTO.getAccess_token());
-        System.out.println(giteeUser);
-
-
+                                HttpServletResponse response,
+                                RedirectAttributes redirectAttributes,
+                                HttpServletRequest request){
+        GiteeAccessTokenDTO giteeAccessTokenDTO = giteeProvider.getAccessToken(code, state);
+        GiteeUser giteeUser = giteeProvider.getUser(giteeAccessTokenDTO.getAccess_token());//通过accessToken获取giiEE用户信息:name id avatarUrl
         if(giteeUser != null){
-            String token = UUID.randomUUID().toString();
-            userService.createOrUpdateGiteeUser(giteeUser,giteeAccessTokenDTO,token);
-            response.addCookie(new Cookie("token",token));
+            Object isLogin = request.getSession().getAttribute("users");
+            System.out.println(isLogin);
+            //没登陆 进行登录操作
+            if(isLogin == null || isLogin.equals("")){
+                String token = UUID.randomUUID().toString();
+                //giteeProvider.login(giteeUser,giteeAccessTokenDTO,token);
+                userService.createOrUpdateGiteeUser(giteeUser,giteeAccessTokenDTO,token);
+                response.addCookie(new Cookie("token",token));
+            }
+            //已经登录了 进行绑定操作
+            else {
+                Users users = (Users)request.getSession().getAttribute("users");
+                if(!userService.addGiteeUser(giteeUser,giteeAccessTokenDTO,users)){
+                    redirectAttributes.addFlashAttribute("msg","此账号已被绑定");
+                }else {
+                    redirectAttributes.addFlashAttribute("msg","账号绑定成功，您可以使用此账号登录您的账户");
+                }
+                return "redirect:/center/account";
+            }
         }
         else {
             //登陆失败
@@ -85,8 +89,9 @@ public class AuthorizeController {
     @GetMapping("/callback")
     public String callback(@RequestParam(name="code")String code,
                            @RequestParam(name="state")String state,
-                           HttpServletRequest request,
-                           HttpServletResponse response){
+                           RedirectAttributes redirectAttributes,
+                           HttpServletResponse response,
+                           HttpServletRequest request){
         AccessTokenDTO accessTokenDTO = new AccessTokenDTO();
         accessTokenDTO.setCode(code);
         accessTokenDTO.setRedirect_uri(githubRedirectUri);
@@ -96,14 +101,8 @@ public class AuthorizeController {
 
         String accessToken = githubProvider.getAccessToken(accessTokenDTO);
         GithubUser githubUser = githubProvider.getUser(accessToken);
-        System.out.println(githubUser.getName());
 
         if(githubUser != null){
-
-            String token = UUID.randomUUID().toString();
-            System.out.println("---------------------------------");
-            System.out.println("token = " + token);
-            System.out.println("---------------------------------");
             //user.setToken(token);
             //此处的token有两种情况
             //当新建用户：       会将此token保存到用户表中
@@ -113,15 +112,26 @@ public class AuthorizeController {
             //user.setAvatarUrl(githubUser.getAvatarUrl());
             //user.setGmtCreate(System.currentTimeMillis());
             //user.setGmtModified(user.getGmtCreate());
-            userService.createOrUpdateGithubUser(githubUser,token,accessToken);
+            Object isLogin =  request.getSession().getAttribute("users");
+            if(isLogin == null || isLogin.equals("")){
+                String token = UUID.randomUUID().toString();
+                userService.createOrUpdateGithubUser(githubUser,token,accessToken);
+                response.addCookie(new Cookie("token",token));
+            }
+            //已经登录了 进行绑定操作
+            else {
+                Users users = (Users)request.getSession().getAttribute("users");
+                if(!userService.addGithubUser(githubUser,accessToken,users)){
+                    redirectAttributes.addFlashAttribute("msg","此账号已被绑定");
+                }else {
+                    redirectAttributes.addFlashAttribute("msg","账号绑定成功，您可以使用此账号登录您的账户");
+                }
+                return "redirect:/center/account";
+            }
             //userService.createOrUpdate(user);
-
-            response.addCookie(new Cookie("token",token));
-
             //登陆成功，写cookie 和 session
             //request.getSession().setAttribute("user",user);//此处穿uesr会报错 会导致登陆后user.id=null 怀疑时githubUser.id 类型是long 二user.id未Integer
             return "redirect:/";
-
         }else {
             //登陆失败
             log.error("callbakc get github error,{}" , githubUser );
