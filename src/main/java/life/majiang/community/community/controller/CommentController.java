@@ -26,6 +26,12 @@ public class CommentController {
     public Integer addLikeCount(@RequestBody Map<String,Long> map){
         return commentService.addLikeCount(map.get("commentId"));
     }
+
+    /**
+     * 插入一级/二级评论 通知发送通知
+     * @param commentCreateDTO：传输的json评论对象
+     * @return 返回结果
+     */
     @ResponseBody
     @RequestMapping(value = "/comment")
     public Object post(@RequestBody CommentCreateDTO commentCreateDTO,//传输的json对象
@@ -36,6 +42,9 @@ public class CommentController {
         }
         if(commentCreateDTO == null || StringUtils.isBlank(commentCreateDTO.getContent())){ // commentCreateDTO.getContent() == null || commentCreateDTO.getContent() == ""
             return ResultDTO.errorOf(CustomizeErrorCode.CONTENT_IS_EMPTY);
+        }
+        if(commentCreateDTO.getContent().length() > 256){
+            return ResultDTO.errorOf(CustomizeErrorCode.COMMENT_IS_TOO_LONG);
         }
         Comment comment = new Comment();
         comment.setParentId(commentCreateDTO.getParentId());
@@ -50,11 +59,21 @@ public class CommentController {
         return ResultDTO.okOf(null);
     }
 
-
+    /**
+     *  展开对应一级评论的二级评论
+     * @param id 一级评论的id
+     * @return 返回
+     */
     @ResponseBody
     @RequestMapping(value = "/comment/{id}")
     public ResultDTO <List> comments(@PathVariable(name = "id")Long id){
         List<CommentDTO> commentDTOS = commentService.listByTargetId(id, CommentTypeEnum.Comment);/*二级评论*/
         return ResultDTO.okOf(commentDTOS);
+    }
+
+    @RequestMapping("/commentToQuestion/{outerId}")
+    public String toQuestionByCommentId(@PathVariable(name = "outerId")Long commentId){
+
+        return "question";
     }
 }

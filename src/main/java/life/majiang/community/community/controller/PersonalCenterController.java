@@ -18,6 +18,14 @@ import java.util.List;
 public class PersonalCenterController {
     @Autowired
     private UserService userService;
+
+    /**
+     *  进入个人信息页面/进入账号信息页面
+     * @param model 返回personal标识/返回account标识 userThirdAuthList第三方信息
+     * @param msg
+     * @param action
+     * @return
+     */
     @RequestMapping("/center/{action}")
     public String center(HttpServletRequest request,
                          Model model,
@@ -28,6 +36,7 @@ public class PersonalCenterController {
 
         /*个人信息*/
         if("personal".equals(action)){
+            // user 信息从cookies中获取
             model.addAttribute("section","personal");
         }
         /*账号信息*/

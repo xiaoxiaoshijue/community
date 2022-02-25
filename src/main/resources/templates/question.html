@@ -82,7 +82,8 @@
                             <div th:text="${comment.content}"></div>
                             <div class="menu">
                                 <span class="glyphicon glyphicon-thumbs-up icon" th:text="${comment.likeCount}"
-                                      th:data-id = "${comment.id}" onclick = "addLikeCount(this)" ></span>
+                                      th:data-id = "${comment.id}" onclick = "addLikeCount(this)" >
+                                </span>
 
 
                                 <!--点击评论按钮展开二级评论
@@ -96,7 +97,7 @@
 
                                 <!--显示时间-->
                                 <span class="pull-right"
-                                      th:text="${#dates.format(comment.gmtCreate,'yyyy-MM-dd')}">
+                                      th:text="${#dates.format(comment.gmtCreate,'yyyy-MM-dd HH:mm')}">
                                 </span>
                             </div>
                             <!--回复问题-->
@@ -162,7 +163,7 @@
             <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
             <!--推广图片-->
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <h4>关注我的饥荒</h4>
+                <h4>关注我的博客</h4>
                 <img class=" question-wechat" src="/images/jinx.jpg">
             </div>
             <hr class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

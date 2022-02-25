@@ -65,7 +65,7 @@ public class NotificationService {
         return notificationMapper.countByExample(example);
     }
 
-    public NotificationDTO read(Long id, Users user) {
+    public void read(Long id, Users user) {
         Notification notification = notificationMapper.selectByPrimaryKey(id);
         //通知接收人和用户不是同一人
         if(!Objects.equals(notification.getReceiver(), user.getUserId())){
@@ -78,9 +78,9 @@ public class NotificationService {
         notification.setStatus(NotificationStatusEnum.REAR.getStatus());
         notificationMapper.updateByPrimaryKey(notification);
 
-        NotificationDTO notificationDTO = new NotificationDTO();
+        /*NotificationDTO notificationDTO = new NotificationDTO();
         BeanUtils.copyProperties(notification,notificationDTO);
-        notificationDTO.setTypeName(NotificationEnum.nameOfType(notification.getType()));
-        return notificationDTO;
+        notificationDTO.setTypeName(NotificationEnum.nameOfType(notification.getType()));*/
+        return ;
     }
 }

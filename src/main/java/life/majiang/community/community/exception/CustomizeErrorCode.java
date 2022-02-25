@@ -12,7 +12,10 @@ public enum CustomizeErrorCode implements ICustomizeErrorCode{
     CONTENT_IS_EMPTY(2007,"输入内容不能为空"),
     READ_NOTIFICATION_FAIL(2008,"非法操作：正在读别人的信息"),
     NOTIFICATION_NOT_FOUND(2009,"消息莫非是不翼而飞了？"),
-    FILE_NOT_FOUND(2010,"文件上传失败");
+    FILE_NOT_FOUND(2010,"文件上传失败"),
+    COMMENT_IS_TOO_LONG(2011,"评论内容过长"),
+    AUTH_NOT_FOUND(2012,"第三方登录异常，请重试或换个方式登陆吧~"),
+    DB_USER_NOT_FOUND(2013,"dbUser未找到请重试吧~");
     private String message;
     private Integer code;
 

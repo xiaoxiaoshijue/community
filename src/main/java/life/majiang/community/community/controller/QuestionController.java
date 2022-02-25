@@ -22,6 +22,13 @@ public class QuestionController {
     @Autowired
     private CommentService commentService;
 
+    /**
+     * 根据id显示问题信息
+     * 入口：1、首页点击问题进入。 2、通知页面点击问题
+     * @param id 问题id
+     * @param model 携带问题信息 相关问题信息 评论信息
+     * @return 问题详细页面
+     */
     @GetMapping("/question/{id}")
     public String question(@PathVariable(name = "id")Long id,
                            Model model){

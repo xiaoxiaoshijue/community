@@ -4,6 +4,8 @@ import life.majiang.community.community.dto.GiteeAccessTokenDTO;
 import life.majiang.community.community.dto.GiteeUser;
 import life.majiang.community.community.dto.GithubUser;
 import life.majiang.community.community.dto.LocalUser;
+import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.UserAuthRelMapper;
 import life.majiang.community.community.mapper.UserLocalAuthMapper;
 import life.majiang.community.community.mapper.UserThirdAuthMapper;
@@ -68,6 +70,7 @@ public class UserService {
             userAuthRelMapper.insert(userAuthRel);
         }else {
 //二、      如果不是第一次登录 需要在user_third_auth表中更新access_token 和 expire_in 和 refresh_token
+            //根据authid
             List<UserThirdAuth> dbUserThirdAuth = userThirdAuthMapper.selectByExample(userThirdAuthExample);
             userThirdAuth.setAuthId(dbUserThirdAuth.get(0).getAuthId());
             UserThirdAuthExample thirdAuthExample = new UserThirdAuthExample();
@@ -76,16 +79,36 @@ public class UserService {
                     .andLoginTypeEqualTo(userThirdAuth.getLoginType());
             userThirdAuthMapper.updateByExample(userThirdAuth,thirdAuthExample);
 //      还需要在user表中更新token
+            //先根据openid type 在rel表中获取userid
+            UserAuthRelExample userAuthRelExample = new UserAuthRelExample();
+            userAuthRelExample.createCriteria()
+                    .andAuthIdEqualTo(dbUserThirdAuth.get(0).getAuthId())
+                    .andAuthTypeEqualTo("third");
+            List<UserAuthRel> dbRel = userAuthRelMapper.selectByExample(userAuthRelExample);
+            if(dbRel == null){
+                throw new CustomizeException(CustomizeErrorCode.AUTH_NOT_FOUND);
+            }
             UsersExample usersExample = new UsersExample();
-            usersExample.createCriteria().andAvatarUrlEqualTo(giteeUser.getAvatar_url());
+            usersExample.createCriteria().andUserIdEqualTo(dbRel.get(0).getUserId());
             List<Users> dbUsers = usersMapper.selectByExample(usersExample);
-            Users users = new Users();
-            users.setToken(token);
-            users.setUserId(dbUsers.get(0).getUserId());
-            users.setAvatarUrl(giteeUser.getAvatar_url());
-            users.setUserName(giteeUser.getName());
-            UsersExample usersExample1 = new UsersExample();
-            usersMapper.updateByPrimaryKeySelective(users);
+            if(dbUsers == null){
+                throw new CustomizeException(CustomizeErrorCode.DB_USER_NOT_FOUND);
+            }
+            //如果users信息第一次保存的是第三方
+            if(dbUsers.get(0).getUserName().equals(giteeUser.getName())){
+                Users users = new Users();
+                users.setToken(token);
+                users.setUserId(dbUsers.get(0).getUserId());
+                users.setAvatarUrl(giteeUser.getAvatar_url());
+                users.setUserName(giteeUser.getName());
+                usersMapper.updateByPrimaryKeySelective(users);
+            }else {
+                Users users = new Users();
+                users.setToken(token);
+                users.setUserId(dbUsers.get(0).getUserId());
+                usersMapper.updateByPrimaryKeySelective(users);
+            }
+            //如果users信息第一次保存的是本地用户 则第三方为绑定用户 不需要更新
         }
 //    三、如果是第一个登录并且账号存在绑定信息
     }

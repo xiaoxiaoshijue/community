@@ -13,4 +13,5 @@ public class NotificationDTO {
     private String typeName;
     private Long outerId;
     private Integer type;
+    private String receiverName;
 }

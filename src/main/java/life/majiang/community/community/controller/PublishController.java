@@ -21,7 +21,13 @@ public class PublishController {
 
     @Autowired
     private QuestionService questionService;
-    //修改
+
+    /**
+     *  修改自己发布的问题
+     * @param id：该问题的主键id
+     * @param model ：将原页面数据封装到发布页面
+     * @return 返回 发布页面
+     */
     @GetMapping("/publish/{id}")
     public String edit(@PathVariable(name = "id")Long id,
                        Model model){
@@ -33,13 +39,28 @@ public class PublishController {
         model.addAttribute("tags", TagCache.get());
         return "publish";
     }
-    //第一次创建
+
+    /**
+     *  进入发布问题页面
+     * @param model 携带所有标签信息到页面上
+     * @return 从首页进入发布页面
+     */
     @GetMapping("/publish")
     public String publish(Model model){
         model.addAttribute("tags", TagCache.get());
         return "publish";
     }
-    //创建的时候返回错误信息的时候
+
+    /**
+     *  发布问题 / 修改问题
+     * @param title 当前页面标题
+     * @param description 当前页面描述
+     * @param tag 当前页面标签
+     * @param id 问题的id。如果为null则是发布问题，如果不为null则是修改问题
+     * @param request .
+     * @param model 携带标题表述标签
+     * @return 重定向回首页
+     */
     @PostMapping("/publish")
     public String doPublish(
             @RequestParam(value = "title",required = false)String title,
@@ -54,7 +75,6 @@ public class PublishController {
         model.addAttribute("tags", TagCache.get());
 
 
-        /*明天学习model 和 model关联的error*/
         if(title==null || title.equals("")){
             model.addAttribute("error","标题不能为空");
             return "publish";
@@ -89,10 +109,6 @@ public class PublishController {
         question.setViewCount(0);
         question.setCommentCount(0);
         question.setLikeCount(0);
-        /**
-         * 如果是创新问题则传来的id = null
-         * 如果是修改问题传来的id为要修改的问题的i
-         */
         questionService.createOrUpdate(question);
 
         return "redirect:/";

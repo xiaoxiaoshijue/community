@@ -88,7 +88,7 @@ function collapseComments(this1,e){
     var subCommentContainer = $("#comment-" + id);
     //展开二级评论
     subCommentContainer.toggleClass("in");
-    this1.classList.toggle("active");
+    //this1.classList.toggle("active");
     //标记二级评论展开状态
     //e.setAttribute("data-collage");
     if(subCommentContainer.children().length != 1){
@@ -118,7 +118,7 @@ function collapseComments(this1,e){
                     "class": "menu"
                 }).append($("<span/>", {
                     "class": "pull-right",
-                    "html": moment(comment.gmtCreate).format('YYYY-MM-DD')
+                    "html": moment(comment.gmtCreate).format('YYYY-MM-DD HH:mm')
                 })));
 
                 var mediaElement = $("<div/>", {

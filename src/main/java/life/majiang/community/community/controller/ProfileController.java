@@ -21,6 +21,13 @@ public class ProfileController {
 
     @Autowired
     private NotificationService notificationService;
+
+    /**
+     *  根据userid获取我的提问/根据userid获取最新回复(只是按照时间排序)
+     * @param action 请求：我的提问/最新回复
+     * @param model 我的所有问题DTO对象/我的所有通知DTO对象
+     * @return
+     */
     @GetMapping("/profile/{action}")
     public String profile(@PathVariable(name = "action")String action,
                           Model model,
@@ -28,7 +35,7 @@ public class ProfileController {
                           @RequestParam(name = "page",defaultValue = "1")Integer page,
                           @RequestParam(name = "size",defaultValue = "6")Integer size ){
         Users users = (Users)request.getSession().getAttribute("users");
-        System.out.println("当前登录uer的信息 ：" + users.toString());
+        System.out.println("当前登录user的信息 ：" + users.toString());
         if(users == null){
             return "redirect:/";
         }

@@ -26,6 +26,7 @@ public class Sessioninterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Cookie[] cookies = request.getCookies();
         if(cookies != null && cookies.length != 0){
+            System.out.println("-----------mapping");
             for (Cookie cookie : cookies) {
                 if("token".equalsIgnoreCase(cookie.getName())){
 //                  服务端从客户端拿到token
