@@ -1,11 +1,14 @@
 package life.majiang.community.community.controller;
 
 
+import com.auth0.jwt.JWT;
 import life.majiang.community.community.dto.*;
 import life.majiang.community.community.model.UserLocalAuth;
 import life.majiang.community.community.model.Users;
 import life.majiang.community.community.provider.GiteeProvider;
 import life.majiang.community.community.provider.GithubProvider;
+import life.majiang.community.community.provider.JwtUtil;
+import life.majiang.community.community.provider.PassToken;
 import life.majiang.community.community.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.jni.Local;
@@ -48,7 +51,7 @@ public class AuthorizeController {
     @Value("${gitee.redirect.uri}")
     private String giteeRedirectUri;
 
-
+    @PassToken
     @GetMapping("/giteeCallback")
     public String giteeCallback(@RequestParam("code")String code,
                                 @RequestParam(name="state",required = false)String state,
@@ -65,7 +68,9 @@ public class AuthorizeController {
                 String token = UUID.randomUUID().toString();
                 //giteeProvider.login(giteeUser,giteeAccessTokenDTO,token);
                 userService.createOrUpdateGiteeUser(giteeUser,giteeAccessTokenDTO,token);
-                response.addCookie(new Cookie("token",token));
+                //response.addCookie(new Cookie("token",token));
+                String jwtToken = JwtUtil.createToken(userService.getUserByToken(token));
+                response.addCookie(new Cookie("token",jwtToken));
             }
             //已经登录了 进行绑定操作
             else {
@@ -85,7 +90,7 @@ public class AuthorizeController {
         return "redirect:/";
     }
 
-
+    @PassToken
     @GetMapping("/callback")
     public String callback(@RequestParam(name="code")String code,
                            @RequestParam(name="state")String state,
@@ -116,7 +121,8 @@ public class AuthorizeController {
             if(isLogin == null || isLogin.equals("")){
                 String token = UUID.randomUUID().toString();
                 userService.createOrUpdateGithubUser(githubUser,token,accessToken);
-                response.addCookie(new Cookie("token",token));
+                String jwtToken = JwtUtil.createToken(userService.getUserByToken(token));
+                response.addCookie(new Cookie("token",jwtToken));
             }
             //已经登录了 进行绑定操作
             else {
@@ -139,6 +145,7 @@ public class AuthorizeController {
         }
         //System.out.println(user.getName());
     }
+    @PassToken
     @GetMapping("/logout")
     public String logout(HttpServletRequest request,
                          HttpServletResponse response){
@@ -149,6 +156,7 @@ public class AuthorizeController {
         response.addCookie(cookie);
         return "redirect:/";
     }
+    @PassToken
     @PostMapping("/register/{username}/{password}/{mobile}")
     //@ResponseBody
     public String register(
@@ -174,11 +182,13 @@ public class AuthorizeController {
         //redirectAttributes.addAttribute("registermsg","registerSuccess");
         return "redirect:/";
     }
+    @PassToken
     @GetMapping("/register")
     public String toRegister(RedirectAttributes redirectAttributes){
         redirectAttributes.addFlashAttribute("msg","register");
         return "redirect:/";
     }
+    @PassToken
     @ResponseBody
     @PostMapping("/register/isUserNameExit")
     public String isUserNameExist(@RequestBody Map<String,String> datas){
@@ -191,11 +201,18 @@ public class AuthorizeController {
         }
         return "用户名可用";
     }
+    @PassToken
     @RequestMapping("/toLogin")
     public String toLogin(RedirectAttributes redirectAttributes){
         redirectAttributes.addFlashAttribute("msg","login");
         return "redirect:/";
     }
+
+    /**
+     *  本地登录方式
+     *
+     * */
+    @PassToken
     @ResponseBody
     @PostMapping("/login")
     public String login(@RequestBody Map<String,String> datas,
@@ -205,7 +222,8 @@ public class AuthorizeController {
         String loginPassword = datas.get("loginPassword");
         String result = userService.login(loginUserName,loginPassword,token);
         if("登录成功".equals(result)){
-            response.addCookie(new Cookie("token",token));
+            String jwtToken = JwtUtil.createToken(userService.getUserByToken(token));
+            response.addCookie(new Cookie("token",jwtToken));
             return result;
         }else {
             return result;

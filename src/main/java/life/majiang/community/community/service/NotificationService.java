@@ -4,7 +4,7 @@ import life.majiang.community.community.dto.NotificationDTO;
 import life.majiang.community.community.dto.PaginationDTO;
 import life.majiang.community.community.enums.NotificationEnum;
 import life.majiang.community.community.enums.NotificationStatusEnum;
-import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.ErrorCodeEnum;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.NotificationMapper;
 import life.majiang.community.community.model.*;
@@ -69,11 +69,11 @@ public class NotificationService {
         Notification notification = notificationMapper.selectByPrimaryKey(id);
         //通知接收人和用户不是同一人
         if(!Objects.equals(notification.getReceiver(), user.getUserId())){
-            throw new CustomizeException(CustomizeErrorCode.READ_NOTIFICATION_FAIL);
+            throw new CustomizeException(ErrorCodeEnum.READ_NOTIFICATION_FAIL);
         }
         //没查到此消息
         if(notification == null){
-            throw new CustomizeException(CustomizeErrorCode.NOTIFICATION_NOT_FOUND);
+            throw new CustomizeException(ErrorCodeEnum.NOTIFICATION_NOT_FOUND);
         }
         notification.setStatus(NotificationStatusEnum.REAR.getStatus());
         notificationMapper.updateByPrimaryKey(notification);

@@ -1,12 +1,10 @@
 package life.majiang.community.community.controller;
 
-import life.majiang.community.community.dto.NotificationDTO;
 import life.majiang.community.community.enums.NotificationEnum;
-import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.ErrorCodeEnum;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.CommentMapper;
 import life.majiang.community.community.model.Comment;
-import life.majiang.community.community.model.CommentExample;
 import life.majiang.community.community.model.Users;
 import life.majiang.community.community.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @Controller
 public class NotificationController {
@@ -41,7 +38,7 @@ public class NotificationController {
                 //需要根据一级评论id获取问题id
             Comment dbComment = commentMapper.selectByPrimaryKey(outerId);
             if(dbComment == null){
-                throw new CustomizeException(CustomizeErrorCode.COMMENT_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.COMMENT_NOT_FOUND);
             }
             return "redirect:/question/"+dbComment.getParentId();
         }else {

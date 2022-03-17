@@ -79,6 +79,10 @@ public class PublishController {
             model.addAttribute("error","标题不能为空");
             return "publish";
         }
+        if(title.length() >= 50){
+            model.addAttribute("error","标题过长");
+            return "publish";
+        }
         if(description==null || description.equals("")){
             model.addAttribute("error","问题补充不能为空");
             return "publish";
@@ -106,9 +110,6 @@ public class PublishController {
         question.setTag(tag);
         question.setCreator(users.getUserId());
         question.setId(id);
-        question.setViewCount(0);
-        question.setCommentCount(0);
-        question.setLikeCount(0);
         questionService.createOrUpdate(question);
 
         return "redirect:/";

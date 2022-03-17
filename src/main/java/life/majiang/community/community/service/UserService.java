@@ -3,15 +3,13 @@ package life.majiang.community.community.service;
 import life.majiang.community.community.dto.GiteeAccessTokenDTO;
 import life.majiang.community.community.dto.GiteeUser;
 import life.majiang.community.community.dto.GithubUser;
-import life.majiang.community.community.dto.LocalUser;
-import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.ErrorCodeEnum;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.UserAuthRelMapper;
 import life.majiang.community.community.mapper.UserLocalAuthMapper;
 import life.majiang.community.community.mapper.UserThirdAuthMapper;
 import life.majiang.community.community.mapper.UsersMapper;
 import life.majiang.community.community.model.*;
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,13 +84,13 @@ public class UserService {
                     .andAuthTypeEqualTo("third");
             List<UserAuthRel> dbRel = userAuthRelMapper.selectByExample(userAuthRelExample);
             if(dbRel == null){
-                throw new CustomizeException(CustomizeErrorCode.AUTH_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.AUTH_NOT_FOUND);
             }
             UsersExample usersExample = new UsersExample();
             usersExample.createCriteria().andUserIdEqualTo(dbRel.get(0).getUserId());
             List<Users> dbUsers = usersMapper.selectByExample(usersExample);
             if(dbUsers == null){
-                throw new CustomizeException(CustomizeErrorCode.DB_USER_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.DB_USER_NOT_FOUND);
             }
             //如果users信息第一次保存的是第三方
             if(dbUsers.get(0).getUserName().equals(giteeUser.getName())){
@@ -397,5 +395,14 @@ public Boolean addGithubUser(GithubUser githubUser, String access_token,Users us
             return "删除成功";
         }
         return "删除失败";
+    }
+
+
+    public Users getUserByToken(String token){
+        UsersExample usersExample = new UsersExample();
+        usersExample.createCriteria()
+                .andTokenEqualTo(token);
+        List<Users> users = usersMapper.selectByExample(usersExample);
+        return users.get(0);
     }
 }

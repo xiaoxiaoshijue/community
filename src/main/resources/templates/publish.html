@@ -12,6 +12,10 @@
     <script src="/js/community.js" type="application/javascript"></script>
     <script src="/js/editormd.min.js" type="application/javascript"></script>
 </head>
+<script th:inline="javascript">
+
+
+</script>
 <body>
 <div th:insert="~{navigation.html :: copy}"></div>
 
@@ -30,7 +34,7 @@
                     <label for="title">问题标题：</label>
                     <!--title description tag怎么获取的-->
                     <input type="text" class="form-control" id="title" th:value="${title}" name="title"
-                           placeholder="问题标题.....">
+                           placeholder="问题标题....." >
                 </div>
                 <div class="form-group" id="question-editor">
                     <label for="description">问题补充（必填，请参照右边提示）：</label>
@@ -89,7 +93,7 @@
                         </div>
                         <div class=" col-lg-3 col-md-12 col-sm-12 col-xs-12">
                             <button type="submit"
-                                    class="btn btn-success btn_publish">发布
+                                    class="btn btn-success btn_publish" >发布
                             </button>
                         </div>
                     </div>

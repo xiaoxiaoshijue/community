@@ -1,4 +1,19 @@
 /**
+ * 获取cookies
+ */
+function getCookie(cookieName){
+    var cookies = document.cookie;
+    var cookiesArray = cookies.split(";");
+    for(var i = 0; i < cookiesArray.length; i++){
+        var arr = cookiesArray[i].split("=");
+        if(cookieName == arr[0]){
+            return arr[1];
+        }
+    }
+    return "";
+}
+
+/**
  * 提交回复
  */
 /*回复问题*/
@@ -19,9 +34,12 @@ function comment(e){
 }
 function addLikeCount(e){
     var commentId = e.getAttribute("data-id");
+    var token = getCookie("token");
+
     $.ajax({
         type:"POST",
         url:"/addCommentLikeCount",
+        headers: {'token': token},
         contentType: 'application/json',
         data:JSON.stringify({
             "commentId":commentId
@@ -30,7 +48,7 @@ function addLikeCount(e){
             if(response == 1){
                 window.location.reload();
             }else {
-                window.alert("点赞出现错误，请稍后再试");
+                window.alert("登陆后才能点赞，请登陆后重试");
             }
         },
         dataType: "json"
@@ -63,7 +81,7 @@ function comment2target(targetId,type,content){
                 if(response.code == 2003){
                     var isAccept = confirm(response.message);
                     if(isAccept){
-                        window.open("https://github.com/login/oauth/authorize?client_id=68a1f60191a5e24b04e4&redirect_uri=http://39.106.54.82:8887/callback&scope=user&state=1")
+                       // window.open("https://github.com/login/oauth/authorize?client_id=68a1f60191a5e24b04e4&redirect_uri=http://39.106.54.82:8887/callback&scope=user&state=1")
                         window.localStorage.setItem("closable",true);
                     }
                 }else {

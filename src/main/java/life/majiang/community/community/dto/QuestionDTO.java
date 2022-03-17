@@ -3,8 +3,10 @@ package life.majiang.community.community.dto;
 import life.majiang.community.community.model.Users;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class QuestionDTO {
+public class QuestionDTO implements Serializable {
     private Long id;
     private String title;
     private String description;

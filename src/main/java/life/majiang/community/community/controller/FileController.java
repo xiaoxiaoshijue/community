@@ -1,10 +1,9 @@
 package life.majiang.community.community.controller;
 
 import life.majiang.community.community.dto.FileDTO;
-import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.ErrorCodeEnum;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.provider.OSSClientUtil;
-import org.apache.tomcat.jni.OS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,9 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 
 @Controller
@@ -38,7 +35,7 @@ public class FileController {
             file.transferTo(newFile);
             url = ossClientUtil.uploadFile(newFile);
         } catch (Exception e) {
-            throw new CustomizeException(CustomizeErrorCode.FILE_NOT_FOUND);
+            throw new CustomizeException(ErrorCodeEnum.FILE_NOT_FOUND);
         }
         FileDTO fileDTO = new FileDTO();
         fileDTO.setSuccess(1);

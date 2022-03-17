@@ -1,15 +1,19 @@
 package life.majiang.community.community.service;
 
+import com.alibaba.fastjson.JSONObject;
 import life.majiang.community.community.dto.CommentDTO;
+import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.enums.CommentTypeEnum;
 import life.majiang.community.community.enums.NotificationEnum;
 import life.majiang.community.community.enums.NotificationStatusEnum;
-import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.ErrorCodeEnum;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.*;
 import life.majiang.community.community.model.*;
+import life.majiang.community.community.provider.Constant;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private CommentMapper commentMapper;
@@ -44,12 +50,12 @@ public class CommentService {
     public void insert(Comment comment, Users commentator) {
         //如果没有父问题 则抛出 "未选择任何问题或者评论进行回复" 异常
         if(comment.getParentId() == null || comment.getParentId() == 0){
-            throw new CustomizeException(CustomizeErrorCode.TARGET_PARAM_NOT_FOUND);
+            throw new CustomizeException(ErrorCodeEnum.TARGET_PARAM_NOT_FOUND);
             //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
         }
         //类型不存在
         if(comment.getType() == null || !CommentTypeEnum.isExist(comment.getType())){
-            throw new CustomizeException(CustomizeErrorCode.TYPE_PARAM_WRONG);
+            throw new CustomizeException(ErrorCodeEnum.TYPE_PARAM_WRONG);
         }
         //type = 2 回复一级评论
         /**
@@ -61,7 +67,7 @@ public class CommentService {
             Comment dbComment = commentMapper.selectByPrimaryKey(comment.getParentId());
             if(dbComment == null){
                 // 评论不存在
-                throw new CustomizeException(CustomizeErrorCode.COMMENT_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.COMMENT_NOT_FOUND);
             }
             //回复问题
            /* Question question = questionMapper.selectByPrimaryKey(dbComment.getParentId());
@@ -86,7 +92,7 @@ public class CommentService {
                 // 创建通知
                 CreateNotify(comment.getCommentator(), dbComment.getCommentator(), commentator.getUserName(), dbParentComment.getContent(), NotificationEnum.REPLY_COMMENT,dbParentComment.getId(),dbUser.getUserName());
             }else {
-                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.QUESTION_NOT_FOUND);
             }
         }
         else {
@@ -94,11 +100,19 @@ public class CommentService {
             Question question = questionMapper.selectByPrimaryKey(comment.getParentId());
             Users users = usersMapper.selectByPrimaryKey(question.getCreator());
             if(question == null){
-                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.QUESTION_NOT_FOUND);
             }
             commentMapper.insert(comment);
             question.setCommentCount(1);
             questionExtMapper.incCommentCount(question);
+
+            QuestionDTO questionDTO = new QuestionDTO();
+            Question dbQuestion = questionMapper.selectByPrimaryKey(question.getId());
+            BeanUtils.copyProperties(dbQuestion,questionDTO);
+            questionDTO.setUsers(users);
+            String string = JSONObject.toJSONString(questionDTO);
+            stringRedisTemplate.opsForHash().put(Constant.QUESTION_INFO_KEY,Constant.TOPPING_QUESTION_ID,string);
+
             // 创建通知
             CreateNotify(comment.getCommentator(), question.getCreator(), commentator.getUserName(),question.getTitle(),NotificationEnum.REPLY_QUESTION,question.getId(),users.getUserName());
         }

@@ -3,6 +3,7 @@ package life.majiang.community.community.controller;
 import life.majiang.community.community.dto.CommentDTO;
 import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.enums.CommentTypeEnum;
+import life.majiang.community.community.provider.PassToken;
 import life.majiang.community.community.service.CommentService;
 import life.majiang.community.community.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class QuestionController {
      * @param model 携带问题信息 相关问题信息 评论信息
      * @return 问题详细页面
      */
+    @PassToken
     @GetMapping("/question/{id}")
     public String question(@PathVariable(name = "id")Long id,
                            Model model){

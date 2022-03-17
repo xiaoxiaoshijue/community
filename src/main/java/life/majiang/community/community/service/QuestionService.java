@@ -1,10 +1,12 @@
 package life.majiang.community.community.service;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import life.majiang.community.community.dto.PaginationDTO;
 import life.majiang.community.community.dto.QuestionDTO;
 import life.majiang.community.community.dto.QuestionQueryDTO;
-import life.majiang.community.community.exception.CustomizeErrorCode;
+import life.majiang.community.community.exception.ErrorCodeEnum;
 import life.majiang.community.community.exception.CustomizeException;
 import life.majiang.community.community.mapper.QuestionExtMapper;
 import life.majiang.community.community.mapper.QuestionMapper;
@@ -12,19 +14,26 @@ import life.majiang.community.community.mapper.UsersMapper;
 import life.majiang.community.community.model.Question;
 import life.majiang.community.community.model.QuestionExample;
 import life.majiang.community.community.model.Users;
+import life.majiang.community.community.provider.Constant;
+import life.majiang.community.community.provider.RedisUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 public class QuestionService {
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private QuestionMapper questionMapper;
@@ -34,6 +43,8 @@ public class QuestionService {
 
     @Autowired
     private QuestionExtMapper questionExtMapper;
+    private QuestionDTO questionDTO;
+
 
     public PaginationDTO<QuestionDTO> list(String search, Integer page, Integer size) {
         if(StringUtils.isNotBlank(search)){
@@ -128,7 +139,7 @@ public class QuestionService {
     public QuestionDTO getById(Long id) {
         Question question = questionMapper.selectByPrimaryKey(id);
         if(question == null){
-            throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+            throw new CustomizeException(ErrorCodeEnum.QUESTION_NOT_FOUND);
         }
         QuestionDTO questionDTO = new QuestionDTO();
         BeanUtils.copyProperties(question,questionDTO);
@@ -138,6 +149,8 @@ public class QuestionService {
     }
 
     public void createOrUpdate(Question question) {
+        Users users = usersMapper.selectByPrimaryKey(question.getCreator());
+        QuestionDTO questionDTO = new QuestionDTO();
         if(question.getId() == null){
             question.setGmtCreate(System.currentTimeMillis());
             question.setGmtModified(question.getGmtCreate());
@@ -158,8 +171,13 @@ public class QuestionService {
                     .andIdEqualTo(question.getId());
             int update = questionMapper.updateByExampleSelective(question, example);*/
             int update = questionMapper.updateByPrimaryKeySelective(question);
+            Question dbQuestion = questionMapper.selectByPrimaryKey(question.getId());
+            BeanUtils.copyProperties(dbQuestion,questionDTO);
+            questionDTO.setUsers(users);
+            String string = JSONObject.toJSONString(questionDTO);
+            stringRedisTemplate.opsForHash().put(Constant.QUESTION_INFO_KEY,Constant.TOPPING_QUESTION_ID,string);
             if(update != 1){
-                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                throw new CustomizeException(ErrorCodeEnum.QUESTION_NOT_FOUND);
                 //你寻找的问题不见了 后续增加吧主删帖功能
             }
         }
@@ -195,5 +213,118 @@ public class QuestionService {
             return questionDTO;
         }).collect(Collectors.toList());
         return questionDTOS;
+    }
+
+    public QuestionDTO listFromRedis(String id) {
+
+        //7、返回数据
+        QuestionDTO questionDTO = listFromRedisWithPassThrough(id);
+        /*if(questionDTO == null){
+            throw new CustomizeException(ErrorCodeEnum.REDIS_NOT_FOUND);
+        }*/
+        return questionDTO;
+    }
+
+    /**
+     *  互斥锁解决
+     */
+    public QuestionDTO listFromRedisWithMutex(String id){
+        //1、从redis中查询问题缓存
+        try{
+            Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(id);
+            if(map.size() != 0){
+                //2、判断是否存在
+                //3、存在直接返回
+                //List<QuestionDTO> list = new ArrayList<>();
+                Iterator<Map.Entry<Object, Object>> iterator = map.entrySet().iterator();
+                while (iterator.hasNext()){
+                    Map.Entry<Object,Object> m = iterator.next();
+                    if(m.getKey() == id){
+                        QuestionDTO questionDTO = JSON.parseObject((String) m.getValue(),QuestionDTO.class);
+                        return questionDTO;
+                    }
+                    //判断命中的是否是空值(缓存穿透
+                    if(m.getValue() == null){
+                        return null;
+                    }
+                }
+            }
+        }catch (Exception e){
+            throw new CustomizeException(ErrorCodeEnum.REDIS_NOT_FOUND);
+        }
+        //4、实现缓存重建
+        //4.1、获取互斥锁
+        String lockKey = "lock:shop" + id;
+        //4.2、判断是否获取成功
+        try {
+            boolean isLock = redisUtil.tryLock(lockKey);
+            //4.3、失败，则休眠并重试
+            if(!isLock){
+                Thread.sleep(50);
+                return listFromRedisWithMutex(id);
+            }
+            //4.4、成功，根据id查询数据库
+            //5、不存在，查询数据库
+            Question question = questionMapper.selectByPrimaryKey(1L);
+            if(question == null){
+                //6、数据库不存在
+                stringRedisTemplate.opsForHash().put(Constant.QUESTION_INFO_KEY,id,"");
+                return null;
+            }
+            Users users = usersMapper.selectByPrimaryKey(question.getCreator());
+            QuestionDTO questionDTO = new QuestionDTO();
+            BeanUtils.copyProperties(question,questionDTO);
+            questionDTO.setUsers(users);
+            //7、存在 先吧数据写入redis
+            String string = JSONObject.toJSONString(questionDTO);
+            stringRedisTemplate.opsForHash().put(Constant.QUESTION_INFO_KEY,Constant.TOPPING_QUESTION_ID,string);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            //8、释放互斥锁
+            redisUtil.unLock(lockKey);
+        }
+        return questionDTO;
+    }
+    public QuestionDTO listFromRedisWithPassThrough(String id){
+        //1、从redis中查询问题缓存
+        try{
+            Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(id);
+            if(map.size() != 0){
+                //2、判断是否存在
+                //3、存在直接返回
+                //List<QuestionDTO> list = new ArrayList<>();
+                Iterator<Map.Entry<Object, Object>> iterator = map.entrySet().iterator();
+                while (iterator.hasNext()){
+                    Map.Entry<Object,Object> m = iterator.next();
+                    if(m.getKey() == id){
+                        QuestionDTO questionDTO = JSON.parseObject((String) m.getValue(),QuestionDTO.class);
+                        return questionDTO;
+                    }
+                    //判断命中的是否是空值(缓存穿透
+                    if(m.getValue() == null){
+                        return null;
+                    }
+                }
+            }
+        }catch (Exception e){
+            throw new CustomizeException(ErrorCodeEnum.REDIS_NOT_FOUND);
+        }
+        //4、不存在，查询数据库
+        Long dbId = Long.parseLong(id);
+        Question question = questionMapper.selectByPrimaryKey(dbId);
+        if(question == null){
+            //5、数据库不存在
+            stringRedisTemplate.opsForHash().put(Constant.QUESTION_INFO_KEY,id,"");
+            return null;
+        }
+        Users users = usersMapper.selectByPrimaryKey(question.getCreator());
+        QuestionDTO questionDTO = new QuestionDTO();
+        BeanUtils.copyProperties(question,questionDTO);
+        questionDTO.setUsers(users);
+        //6、存在 先吧数据写入redis
+        String string = JSONObject.toJSONString(questionDTO);
+        stringRedisTemplate.opsForHash().put(Constant.QUESTION_INFO_KEY,Constant.TOPPING_QUESTION_ID,string);
+        return questionDTO;
     }
 }
