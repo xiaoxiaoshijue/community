@@ -49,7 +49,7 @@ public class JasyptUtil {
 
     public static void main(String[] args){
         //加密
-        System.out.println(encyptPwd("jasypt","Xrh19780!"));
+        System.out.println(encyptPwd("jasypt","7IgmVx8Tqccbfe5062SURuRGDAXbzH"));
         //解密
         System.out.println(decyptPwd("jasypt","j04iGO7Rvjv4EzPreeEjo7tQg2ML5rHfTftffnfeO/tfoCWeC7L6YcrGigzY3F/yUUJnJb16e0+b8Kv/sVQRpUtn/7JKqAGN6Lve9H3cplY="));
     }
